@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect, useReducer } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Send, Bot, User, Lightbulb, BookOpen, History, Info, ChevronRight, MessageSquare, Sparkles, ChevronDown } from 'lucide-react';
+import { Send, Bot, User, Lightbulb, BookOpen, History, Info, ChevronRight, MessageSquare, Sparkles, Brain } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -12,6 +12,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { cn } from '@/lib/utils';
 import { Prompt } from 'next/font/google';
 import Markdown from 'react-markdown';
+import { Label } from '@/components/ui/label';
 
 // Sample conversation starters
 const conversationStarters = [
@@ -101,9 +102,9 @@ function promptQueueReducer(state: Prompt[], action: { type: string; payload?: P
 export default function Chat() {
   const [messages, setMessages] = useState<Message[]>(initialChatHistory);
   const [inputMessage, setInputMessage] = useState('');
-  const [isTyping /*, setIsTyping */] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [openCollapseIds, setOpenCollapseIds] = useState<Set<string>>(new Set());
+  const [thinkModeEnabled, setThinkModeEnabled] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const ollamaApiUrl = 'http://localhost:11434/api/chat';
@@ -112,47 +113,10 @@ export default function Chat() {
   const [promptQueue, dispatch] = useReducer(promptQueueReducer, [] as Prompt[]);
   const [isProcessing, setIsProcessing] = useState(false);
 
-  // Function to process the prompt queue
-  const processQueue = async () => {
-    if (isProcessing || promptQueue.length === 0) return;
-
-    setIsProcessing(true);
-    // setIsTyping(true);
-    const currentPrompt = promptQueue[0];
-
-    // Fetch AI response from Ollama API
-    /* const responseText = */ await fetchOllamaResponse(currentPrompt.text, currentPrompt.chatHistory);
-
-    // const newAiMessage: Message = {
-    //   id: (Date.now() + 1).toString(),
-    //   text: responseText,
-    //   sender: 'ai',
-    //   timestamp: new Date(),
-    // };
-
-    // setMessages((prevMessages) => [...prevMessages, newAiMessage]);
-    setIsProcessing(false);
-    // setIsTyping(false);
-    dispatch({ type: REMOVE_PROMPT });
+  // Function to toggle the think mode
+  const toggleThinkMode = () => {
+    setThinkModeEnabled((prev) => !prev);
   };
-
-  // Use effect to process the queue whenever it changes
-  useEffect(() => {
-    processQueue();
-  }, [promptQueue, processQueue]);
-
-  // Auto-expand thinking sections when they appear
-  useEffect(() => {
-    messages.forEach(message => {
-      if (message.isThinking && message.thought) {
-        setOpenCollapseIds(prev => {
-          const newSet = new Set(prev);
-          newSet.add(message.id);
-          return newSet;
-        });
-      }
-    });
-  }, [messages]);
 
   // Function to communicate with Ollama API
   const fetchOllamaResponse = async (userMessage: string, chatHistory: Message[]): Promise<void> => { // Promise<string> => {
@@ -297,12 +261,9 @@ export default function Chat() {
           }
         }
       }
-
-      // return result;
     } catch (error) {
       console.error('Error fetching response from Ollama:', error);
       setErrorMessage('Failed to connect to Ollama API. Is it running at http://localhost:11434?');
-      // return the following error message
       setMessages(
         (prevMessages) => [
           ...prevMessages,
@@ -316,6 +277,34 @@ export default function Chat() {
       );
     }
   };
+
+  // Use effect to process the queue whenever it changes
+  useEffect(() => {
+    // Function to process the prompt queue
+    const processQueue = async () => {
+      if (isProcessing || promptQueue.length === 0) return;
+      setIsProcessing(true);
+      const currentPrompt = promptQueue[0];
+      await fetchOllamaResponse(currentPrompt.text, currentPrompt.chatHistory);
+      setIsProcessing(false);
+      dispatch({ type: REMOVE_PROMPT });
+    };
+
+    processQueue();
+  }, [promptQueue, isProcessing, fetchOllamaResponse, dispatch]);
+
+  // Auto-expand thinking sections when they appear
+  useEffect(() => {
+    messages.forEach(message => {
+      if (message.isThinking && message.thought) {
+        setOpenCollapseIds(prev => {
+          const newSet = new Set(prev);
+          newSet.add(message.id);
+          return newSet;
+        });
+      }
+    });
+  }, [messages]);
 
   // Auto-scroll to bottom of messages
   useEffect(() => {
@@ -332,10 +321,13 @@ export default function Chat() {
   // Handle sending a message
   const handleSendMessage = async (text: string = inputMessage) => {
     if (!text.trim()) return;
+    
+    // If think mode is disabled, add "/no_think" to the beginning of the message
+    const processedText = !thinkModeEnabled ? `/no_think ${text.trim()}` : text.trim();
 
     const newUserMessage: Message = {
       id: Date.now().toString(),
-      text: text.trim(),
+      text: text.trim(), // Display original text to user without the /no_think prefix
       sender: 'user',
       timestamp: new Date(),
     };
@@ -345,7 +337,7 @@ export default function Chat() {
 
     dispatch({
       type: ADD_PROMPT,
-      payload: { text: text.trim(), chatHistory: [...messages, newUserMessage] },
+      payload: { text: processedText, chatHistory: [...messages, newUserMessage] },
     });
   };
 
@@ -535,7 +527,7 @@ export default function Chat() {
                           )}
                         </div>
                         <div>
-                          {message.sender === 'ai' && message.thought && (
+                          {message.sender === 'ai' && message.thought && message.thought.trim() && (
                             <Collapsible
                               className="mt-1 mb-2"
                               open={openCollapseIds.has(message.id)}
@@ -590,6 +582,18 @@ export default function Chat() {
 
           {/* Fixed input area */}
           <CardContent className="p-4 border-t mt-auto">
+            <div className="flex items-center justify-start mb-2">
+              <div className="flex items-center space-x-2">
+                <Label
+                  htmlFor="think-mode"
+                  className={`flex items-center border px-2 py-1 rounded-full cursor-pointer ${thinkModeEnabled ? 'border-yellow-500 text-yellow-500' : 'text-muted-foreground'}`}
+                  onClick={toggleThinkMode}
+                >
+                  <Brain className="h-4 w-4" />
+                  <span className="text-sm">Think</span>
+                </Label>
+              </div>
+            </div>
             <div className="relative">
               <Textarea
                 ref={textareaRef}
@@ -602,7 +606,7 @@ export default function Chat() {
               />
               <Button
                 onClick={() => handleSendMessage()}
-                disabled={!inputMessage.trim() || isTyping}
+                disabled={!inputMessage.trim() || isProcessing}
                 className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 p-0 bg-yellow-500 hover:bg-yellow-600"
               >
                 <Send className="h-4 w-4" />

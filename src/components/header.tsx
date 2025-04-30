@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { MenuIcon, BellIcon, Star } from 'lucide-react';
+import { SidebarCloseIcon, SidebarOpenIcon, BellIcon, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ModeToggle } from '@/components/mode-toggle';
@@ -46,12 +46,13 @@ const Header = ({ toggleSidebar, isSidebarOpen }: HeaderProps) => {
             variant="ghost"
             size="icon"
             onClick={toggleSidebar}
-            className={`${isSidebarOpen ? 'md:ml-56' : ''} transition-all duration-300`}
           >
-            <MenuIcon className="h-5 w-5" />
+            {isSidebarOpen ? <SidebarCloseIcon className="h-6 w-6" /> : <SidebarOpenIcon className="h-6 w-6" />}
           </Button>
-          <Link href="/dashboard" className="flex items-center space-x-2">
-            <Star className="h-6 w-6 text-yellow-500" />
+          <Link href="/dashboard"
+            className={`${isSidebarOpen ? 'ml-50' : ''} flex items-center space-x-2 transition-all duration-300`}
+          >
+            <Sparkles className="h-6 w-6 text-yellow-500" />
             <span className="text-xl font-bold">Spark</span>
           </Link>
         </div>

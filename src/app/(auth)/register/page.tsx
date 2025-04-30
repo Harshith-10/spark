@@ -69,7 +69,7 @@ export default function Register() {
       // Demo registration - in a real app, you'd create account via API
       // localStorage.setItem('spark-auth', 'true'); // Auth state should be managed server-side or via context/state management
       router.push('/dashboard'); // Redirect after successful registration
-    }, 1500);
+    }, 500);
   };
 
   return (

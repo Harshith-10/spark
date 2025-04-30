@@ -1,8 +1,8 @@
-'use client'; // Needed for useState, framer-motion, and client-side logic
+'use client';
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation'; // Changed from next/router
+import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -40,7 +40,7 @@ export default function Login() {
         setError('Invalid email or password');
         setIsLoading(false);
       }
-    }, 1500);
+    }, 500);
   };
 
   return (

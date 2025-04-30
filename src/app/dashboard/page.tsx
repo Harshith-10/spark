@@ -1,13 +1,16 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
+import { Line, XAxis, YAxis, CartesianGrid } from 'recharts';
+import * as RechartsPrimitive from 'recharts';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from '@/lib/utils';
+import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartLegend, ChartLegendContent } from '@/components/ui/chart';
+import { useMediaQuery } from '@/hooks/use-media-query';
 
 // Mock data for the score chart
 const scoreData = [
@@ -37,32 +40,61 @@ const leaderboardData = [
 
 // Mock data for recent activity
 const recentActivity = [
-  { 
-    id: 1, 
-    type: 'test_completed', 
-    title: 'Advanced Physics', 
-    score: 92, 
+  {
+    id: 1,
+    type: 'test_completed',
+    title: 'Advanced Physics',
+    score: 92,
     maxScore: 100,
     date: '2d ago'
   },
-  { 
-    id: 2, 
-    type: 'badge_earned', 
-    badgeName: 'Top 10%', 
+  {
+    id: 2,
+    type: 'badge_earned',
+    badgeName: 'Top 10%',
     test: 'World History',
     date: '3d ago'
   },
-  { 
-    id: 3, 
-    type: 'streak', 
+  {
+    id: 3,
+    type: 'streak',
     days: 7,
     date: '1w ago'
   },
 ];
 
+// Chart config for different data series
+const chartConfig = {
+  score: {
+    label: "Your Score",
+    theme: {
+      light: "#ffb100",
+      dark: "#ffb100",
+    },
+  },
+  average: {
+    label: "Class Average",
+    theme: {
+      light: "#2563eb",
+      dark: "#3b82f6",
+    },
+  },
+};
+
 export default function Dashboard() {
   const [timeRange, setTimeRange] = useState<string>('6m');
-  
+  const isDarkMode = useMediaQuery('(prefers-color-scheme: dark)');
+
+  useEffect(() => {
+    // Reset animations when timeRange changes
+    const timer = setTimeout(() => {
+      // This would trigger a re-render if we needed to reset animations
+      // when changing time ranges
+    }, 100);
+
+    return () => clearTimeout(timer);
+  }, [timeRange]);
+
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -101,7 +133,7 @@ export default function Dashboard() {
             </p>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Tests Completed</CardTitle>
@@ -126,7 +158,7 @@ export default function Dashboard() {
             </p>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Study Streak</CardTitle>
@@ -150,7 +182,7 @@ export default function Dashboard() {
             </p>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">AI Tutor Sessions</CardTitle>
@@ -185,8 +217,8 @@ export default function Dashboard() {
             <div className="flex items-center justify-between">
               <CardTitle>Score Performance</CardTitle>
               <div className="flex space-x-2">
-                <Badge 
-                  variant="outline" 
+                <Badge
+                  variant="outline"
                   className={cn(
                     "cursor-pointer hover:bg-yellow-500/10 transition-colors",
                     timeRange === '1m' && "bg-yellow-500/10 text-yellow-500 hover:bg-yellow-500/20"
@@ -195,8 +227,8 @@ export default function Dashboard() {
                 >
                   1M
                 </Badge>
-                <Badge 
-                  variant="outline" 
+                <Badge
+                  variant="outline"
                   className={cn(
                     "cursor-pointer hover:bg-yellow-500/10 transition-colors",
                     timeRange === '3m' && "bg-yellow-500/10 text-yellow-500 hover:bg-yellow-500/20"
@@ -205,8 +237,8 @@ export default function Dashboard() {
                 >
                   3M
                 </Badge>
-                <Badge 
-                  variant="outline" 
+                <Badge
+                  variant="outline"
                   className={cn(
                     "cursor-pointer hover:bg-yellow-500/10 transition-colors",
                     timeRange === '6m' && "bg-yellow-500/10 text-yellow-500 hover:bg-yellow-500/20"
@@ -222,46 +254,44 @@ export default function Dashboard() {
             </CardDescription>
           </CardHeader>
           <CardContent className="pl-2">
-            <div className="h-[300px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart
+            <div className="h-[300px] w-full">
+              <ChartContainer config={chartConfig} className="!aspect-auto h-full">
+                <RechartsPrimitive.LineChart
                   data={scoreData}
-                  margin={{
-                    top: 5,
-                    right: 10,
-                    left: 10,
-                    bottom: 5,
-                  }}
+                  margin={{ top: 5, right: 10, left: 10, bottom: 6 }}
                 >
                   <CartesianGrid strokeDasharray="3 3" stroke="#888" strokeOpacity={0.2} />
                   <XAxis dataKey="name" stroke="#888" fontSize={12} tickLine={false} axisLine={false} />
                   <YAxis stroke="#888" fontSize={12} tickLine={false} axisLine={false} domain={[0, 100]} />
-                  <Tooltip />
-                  <Legend />
+                  <ChartTooltip
+                    content={<ChartTooltipContent />}
+                    cursor={{ stroke: "#888", strokeDasharray: "4 4", opacity: 0.3 }}
+                  />
+                  <ChartLegend content={<ChartLegendContent />} verticalAlign="bottom" height={36} />
                   <Line
                     type="monotone"
                     dataKey="score"
-                    name="Your Score"
-                    stroke="hsl(var(--chart-1))"
+                    name="score"
                     strokeWidth={3}
                     dot={{ r: 4 }}
                     activeDot={{ r: 6, strokeWidth: 2 }}
+                    stroke={isDarkMode ? chartConfig.score.theme.dark : chartConfig.score.theme.light}
                   />
                   <Line
                     type="monotone"
                     dataKey="average"
-                    name="Class Average"
-                    stroke="hsl(var(--chart-2))"
+                    name="average"
                     strokeWidth={3}
                     dot={{ r: 4 }}
                     activeDot={{ r: 6, strokeWidth: 2 }}
+                    stroke={isDarkMode ? chartConfig.average.theme.dark : chartConfig.average.theme.light}
                   />
-                </LineChart>
-              </ResponsiveContainer>
+                </RechartsPrimitive.LineChart>
+              </ChartContainer>
             </div>
           </CardContent>
         </Card>
-        
+
         <Card className="col-span-3">
           <CardHeader>
             <CardTitle>Leaderboard</CardTitle>
@@ -292,7 +322,7 @@ export default function Dashboard() {
                 </div>
               ))}
             </div>
-            
+
             <div className="mt-4 pt-4 border-t">
               <h4 className="text-sm font-medium mb-3">Your Ranking</h4>
               <div className="flex items-center">
@@ -347,7 +377,7 @@ export default function Dashboard() {
             </button>
           </CardContent>
         </Card>
-        
+
         <Card className="col-span-4">
           <CardHeader>
             <CardTitle>Activity</CardTitle>
@@ -360,7 +390,7 @@ export default function Dashboard() {
                 <TabsTrigger value="tests">Tests</TabsTrigger>
                 <TabsTrigger value="achievements">Achievements</TabsTrigger>
               </TabsList>
-              
+
               <TabsContent value="all" className="space-y-4">
                 {recentActivity.map((activity) => (
                   <div key={activity.id} className="flex justify-between items-center p-3 border rounded-lg">
@@ -393,7 +423,7 @@ export default function Dashboard() {
                         </div>
                       </>
                     )}
-                    
+
                     {activity.type === 'badge_earned' && (
                       <>
                         <div className="flex items-center">
@@ -422,7 +452,7 @@ export default function Dashboard() {
                         </div>
                       </>
                     )}
-                    
+
                     {activity.type === 'streak' && (
                       <>
                         <div className="flex items-center">
@@ -437,7 +467,7 @@ export default function Dashboard() {
                               strokeWidth="2"
                               className="h-5 w-5 text-yellow-500"
                             >
-                              <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z" />
+                              <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1-1.275 1.275L12 21l1.912-5.813a2 2 0 0 1-1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z" />
                             </svg>
                           </div>
                           <div>
@@ -453,7 +483,7 @@ export default function Dashboard() {
                   </div>
                 ))}
               </TabsContent>
-              
+
               <TabsContent value="tests" className="space-y-4">
                 {recentActivity
                   .filter(a => a.type === 'test_completed')
@@ -487,7 +517,7 @@ export default function Dashboard() {
                     </div>
                   ))}
               </TabsContent>
-              
+
               <TabsContent value="achievements" className="space-y-4">
                 {recentActivity
                   .filter(a => a.type === 'badge_earned' || a.type === 'streak')
@@ -521,7 +551,7 @@ export default function Dashboard() {
                           </div>
                         </>
                       )}
-                      
+
                       {activity.type === 'streak' && (
                         <>
                           <div className="flex items-center">
@@ -536,7 +566,7 @@ export default function Dashboard() {
                                 strokeWidth="2"
                                 className="h-5 w-5 text-yellow-500"
                               >
-                                <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z" />
+                                <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1-1.275 1.275L12 21l1.912-5.813a2 2 0 0 1-1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z" />
                               </svg>
                             </div>
                             <div>

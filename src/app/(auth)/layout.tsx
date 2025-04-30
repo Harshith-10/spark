@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
-import { LightbulbIcon } from 'lucide-react';
+import { Sparkles } from 'lucide-react';
 import { ModeToggle } from '@/components/mode-toggle';
 
 export default function AuthLayout({
@@ -20,7 +20,7 @@ export default function AuthLayout({
         transition={{ duration: 0.5 }}
       >
         <div className="max-w-md mx-auto text-center">
-          <LightbulbIcon className="h-20 w-20 mx-auto mb-6 text-white" />
+          <Sparkles className="h-20 w-20 mx-auto mb-6 text-white" />
           <h1 className="text-4xl font-bold text-white mb-4">Spark</h1>
           <p className="text-xl text-white/90">Ignite your learning journey with our intelligent test-taking platform.</p>
         </div>

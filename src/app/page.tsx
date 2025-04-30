@@ -2,11 +2,11 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
 import { motion } from 'framer-motion';
-import { LightbulbIcon, ArrowRight, ChevronDown } from 'lucide-react';
+import { Sparkles, ArrowRight, ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ModeToggle } from '@/components/mode-toggle';
+import Image from 'next/image';
 
 const testimonials = [
   {
@@ -70,7 +70,7 @@ export default function LandingPage() { // Renamed from Home to LandingPage for 
       }`}>
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
           <div className="flex items-center space-x-2">
-            <LightbulbIcon className="h-6 w-6 text-yellow-500" />
+            <Sparkles className="h-6 w-6 text-yellow-500" />
             <span className="text-xl font-bold">Spark</span>
           </div>
           <div className="flex items-center space-x-4">
@@ -227,9 +227,11 @@ export default function LandingPage() { // Renamed from Home to LandingPage for 
                 transition={{ delay: index * 0.1 }}
               >
                 <div className="flex items-center mb-4">
-                  <img
+                  <Image
                     src={testimonial.avatar}
                     alt={testimonial.name}
+                    width={48}
+                    height={48}
                     className="h-12 w-12 rounded-full object-cover mr-4"
                   />
                   <div>
@@ -267,7 +269,7 @@ export default function LandingPage() { // Renamed from Home to LandingPage for 
         <div className="container mx-auto px-4">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <div className="flex items-center space-x-2 mb-4 md:mb-0">
-              <LightbulbIcon className="h-6 w-6 text-yellow-500" />
+              <Sparkles className="h-6 w-6 text-yellow-500" />
               <span className="text-xl font-bold">Spark</span>
             </div>
             <div className="flex flex-col md:flex-row md:space-x-8 space-y-4 md:space-y-0 items-center">

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter, /* useParams */ } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { Clock, ArrowLeft, ArrowRight, Save, Flag, Check, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -227,7 +227,7 @@ export default function TestDetail() {
       // Auto-submit when time is up
       handleSubmitTest();
     }
-  }, [timeLeft, testSubmitted]);
+  }, [timeLeft, testSubmitted, handleSubmitTest]);
   
   // Current question
   const currentQuestion = mockTestData.questions[currentQuestionIndex];
