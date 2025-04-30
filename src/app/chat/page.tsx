@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect, useReducer } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Send, Bot, User, Lightbulb, BookOpen, History, Info, ChevronRight, MessageSquare, Sparkles, Brain } from 'lucide-react';
+import { Send, Bot, User, Lightbulb, BookOpen, History, Info, ChevronRight, MessageSquare, Sparkles, Brain, Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -13,6 +13,8 @@ import { cn } from '@/lib/utils';
 import { Prompt } from 'next/font/google';
 import Markdown from 'react-markdown';
 import { Label } from '@/components/ui/label';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
 
 // Sample conversation starters
 const conversationStarters = [
@@ -79,7 +81,7 @@ const initialChatHistory: Message[] = [
     id: '1',
     text: "Hello! I'm your AI tutor. How can I help you with your studies today?",
     sender: 'ai',
-    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24),
+    timestamp: new Date(Date.now()),
   },
 ];
 
@@ -107,11 +109,28 @@ export default function Chat() {
   const [thinkModeEnabled, setThinkModeEnabled] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
-  const ollamaApiUrl = 'http://localhost:11434/api/chat';
+  const defaultApiUrl = 'https://a01a-35-201-20-252.ngrok-free.app';
+  const [ollamaApiUrl, setOllamaApiUrl] = useState<string>(defaultApiUrl);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [newApiUrl, setNewApiUrl] = useState('');
   const defaultModel = 'spark';
 
   const [promptQueue, dispatch] = useReducer(promptQueueReducer, [] as Prompt[]);
   const [isProcessing, setIsProcessing] = useState(false);
+
+  // Load API URL from localStorage on initial render
+  useEffect(() => {
+    // Only run on client-side
+    if (typeof window !== 'undefined') {
+      const savedUrl = localStorage.getItem('ollamaApiUrl');
+      if (savedUrl) {
+        setOllamaApiUrl(savedUrl);
+        setNewApiUrl(savedUrl);
+      } else {
+        setNewApiUrl(defaultApiUrl);
+      }
+    }
+  }, [defaultApiUrl]);
 
   // Function to toggle the think mode
   const toggleThinkMode = () => {
@@ -137,7 +156,7 @@ export default function Chat() {
         stream: true,
       };
 
-      const response = await fetch(ollamaApiUrl, {
+      const response = await fetch(ollamaApiUrl + "/api/chat", {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -370,6 +389,22 @@ export default function Chat() {
     ]);
   };
 
+  // Handle opening settings dialog
+  const handleOpenSettings = () => {
+    setNewApiUrl(ollamaApiUrl);
+    setIsSettingsOpen(true);
+  };
+
+  // Handle saving settings
+  const handleSaveSettings = () => {
+    if (newApiUrl && newApiUrl !== ollamaApiUrl) {
+      setOllamaApiUrl(newApiUrl);
+      localStorage.setItem('ollamaApiUrl', newApiUrl);
+      setErrorMessage(null); // Clear any existing error messages
+    }
+    setIsSettingsOpen(false);
+  };
+
   // Format message timestamp
   const formatTimestamp = (date: Date) => {
     const now = new Date();
@@ -480,11 +515,21 @@ export default function Chat() {
         <Card className="md:col-span-3 flex flex-col h-full overflow-hidden">
           {/* Fixed header */}
           <CardHeader className="border-b pb-3">
-            <div className="flex items-center">
-              <div className="h-8 w-8 rounded-full bg-yellow-500/10 flex items-center justify-center mr-3">
-                <Bot className="h-4 w-4 text-yellow-500" />
+            <div className="flex items-center justify-between">
+              <div className="flex items-center">
+                <div className="h-8 w-8 rounded-full bg-yellow-500/10 flex items-center justify-center mr-3">
+                  <Bot className="h-4 w-4 text-yellow-500" />
+                </div>
+                <CardTitle className="text-xl">AI Tutor Chat</CardTitle>
               </div>
-              <CardTitle className="text-xl">AI Tutor Chat</CardTitle>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={handleOpenSettings}
+                title="Configure Ollama API URL"
+              >
+                <Settings className="h-4 w-4" />
+              </Button>
             </div>
             {errorMessage && (
               <div className="mt-2 p-2 bg-red-100 text-red-700 text-sm rounded-md flex items-center">
@@ -538,7 +583,7 @@ export default function Chat() {
                                   <ChevronRight className={'h-3 w-3 mr-1 transition-all transform ' + (openCollapseIds.has(message.id) ? 'rotate-90' : 'rotate-0')} />
                                   <span className='flex items-center'>Thought process</span>
                                   {message.isThinking && <div
-                                    className="ml-1 w-3 h-3 border-2 border-t-yellow-500 border-gray-900 rounded-full animate-spin"
+                                    className="ml-1 w-3 h-3 border-2 border-t-yellow-500 border-transparent rounded-full animate-spin"
                                   ></div>}
                                 </CollapsibleTrigger>
                               </div>
@@ -601,13 +646,13 @@ export default function Chat() {
                 value={inputMessage}
                 onChange={handleTextareaChange}
                 onKeyDown={handleKeyDown}
-                className="pr-12 resize-none min-h-[50px] max-h-[120px]"
+                className="pr-12 resize-none overflow-hidden min-h-[49px] max-h-[120px]"
                 rows={1}
               />
               <Button
                 onClick={() => handleSendMessage()}
                 disabled={!inputMessage.trim() || isProcessing}
-                className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 p-0 bg-yellow-500 hover:bg-yellow-600"
+                className="absolute right-2 -translate-y-10 h-8 w-8 p-0 bg-yellow-500 hover:bg-yellow-600"
               >
                 <Send className="h-4 w-4" />
               </Button>
@@ -629,6 +674,32 @@ export default function Chat() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Settings dialog */}
+      <Dialog open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Settings</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <Label htmlFor="api-url">API URL</Label>
+            <Input
+              id="api-url"
+              value={newApiUrl}
+              onChange={(e) => setNewApiUrl(e.target.value)}
+              placeholder="Enter API URL"
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setIsSettingsOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleSaveSettings}>
+              Save
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </motion.div>
   );
 }
