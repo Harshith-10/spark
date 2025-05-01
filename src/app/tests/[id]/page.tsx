@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { Clock, ArrowLeft, ArrowRight, Save, Flag, Check, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
@@ -195,8 +195,8 @@ export default function TestDetail() {
     setUserAnswers(initialAnswers);
   }, []);
 
-  // Submit test
-  const handleSubmitTest = () => {
+  // Submit test - memoized with useCallback
+  const handleSubmitTest = useCallback(() => {
     // Calculate score
     let correctAnswers = 0;
     userAnswers.forEach((userAnswer, index) => {
@@ -212,7 +212,7 @@ export default function TestDetail() {
     toast("Test submitted successfully", {
       description: `Your score: ${finalScore}%`,
     });
-  };
+  }, [userAnswers, toast]);
   
   // Timer
   useEffect(() => {

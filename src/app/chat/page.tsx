@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect, useReducer } from 'react';
+import { useState, useRef, useEffect, useReducer, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Send, Bot, User, Lightbulb, BookOpen, History, Info, ChevronRight, MessageSquare, Sparkles, Brain, Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -10,7 +10,6 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { cn } from '@/lib/utils';
-import { Prompt } from 'next/font/google';
 import Markdown from 'react-markdown';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
@@ -109,7 +108,7 @@ export default function Chat() {
   const [thinkModeEnabled, setThinkModeEnabled] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
-  const defaultApiUrl = 'https://a01a-35-201-20-252.ngrok-free.app';
+  const defaultApiUrl = 'http://localhost:11434';
   const [ollamaApiUrl, setOllamaApiUrl] = useState<string>(defaultApiUrl);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [newApiUrl, setNewApiUrl] = useState('');
@@ -137,8 +136,8 @@ export default function Chat() {
     setThinkModeEnabled((prev) => !prev);
   };
 
-  // Function to communicate with Ollama API
-  const fetchOllamaResponse = async (userMessage: string, chatHistory: Message[]): Promise<void> => { // Promise<string> => {
+  // Function to communicate with Ollama API - memoized with useCallback
+  const fetchOllamaResponse = useCallback(async (userMessage: string, chatHistory: Message[]): Promise<void> => { // Promise<string> => {
     try {
       const ollamaMessages: OllamaMessage[] = chatHistory.map((msg) => ({
         role: msg.sender === 'user' ? 'user' : 'assistant',
@@ -295,7 +294,7 @@ export default function Chat() {
         ]
       );
     }
-  };
+  }, [ollamaApiUrl, defaultModel]);
 
   // Use effect to process the queue whenever it changes
   useEffect(() => {
@@ -310,7 +309,7 @@ export default function Chat() {
     };
 
     processQueue();
-  }, [promptQueue, isProcessing, fetchOllamaResponse, dispatch]);
+  }, [promptQueue, isProcessing, fetchOllamaResponse]);
 
   // Auto-expand thinking sections when they appear
   useEffect(() => {
@@ -376,6 +375,8 @@ export default function Chat() {
       textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 120)}px`;
     }
   };
+
+  // /no_think
 
   // Clear the chat
   const handleClearChat = () => {
@@ -520,7 +521,7 @@ export default function Chat() {
                 <div className="h-8 w-8 rounded-full bg-yellow-500/10 flex items-center justify-center mr-3">
                   <Bot className="h-4 w-4 text-yellow-500" />
                 </div>
-                <CardTitle className="text-xl">New Chat</CardTitle>
+                <CardTitle className="text-xl">New conversation</CardTitle>
               </div>
               <Button
                 variant="ghost"
