@@ -10,8 +10,7 @@ pipeline {
         NODE_ENV = 'production'
         // Add GitHub credentials if needed for deployment
         GITHUB_CREDENTIALS = credentials('github-credentials')
-        // Add Docker Hub credentials
-        DOCKER_CREDENTIALS = credentials('dockerhub-credentials')
+        // Docker Hub credentials removed
     }
     
     stages {
@@ -48,27 +47,11 @@ pipeline {
             }
         }
         
-        stage('Docker Build') {
-            steps {
-                // Build Docker image
-                bat 'docker build -t harshith10/spark:latest -t harshith10/spark:%BUILD_NUMBER% .'
-            }
-        }
-        
-        stage('Deploy') {
+        stage('Deploy to GitHub') {
             when {
                 branch 'main'  // Only deploy from main branch
             }
             steps {
-                // Push Docker image to registry
-                withCredentials([usernamePassword(credentialsId: 'dockerhub-credentials', 
-                                                passwordVariable: 'DOCKER_PASSWORD', 
-                                                usernameVariable: 'DOCKER_USERNAME')]) {
-                    bat 'docker login -u %DOCKER_USERNAME% -p %DOCKER_PASSWORD%'
-                    bat 'docker push harshith10/spark:latest'
-                    bat 'docker push harshith10/spark:%BUILD_NUMBER%'
-                }
-                
                 // GitHub tag for this version
                 withCredentials([usernamePassword(credentialsId: 'github-credentials', 
                                                 passwordVariable: 'GIT_PASSWORD', 

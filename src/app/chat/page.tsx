@@ -632,7 +632,7 @@ export default function Chat() {
               <div className="flex items-center space-x-2">
                 <Label
                   htmlFor="think-mode"
-                  className={`flex items-center border px-2 py-1 rounded-full cursor-pointer ${thinkModeEnabled ? 'border-yellow-500 text-yellow-500' : 'text-muted-foreground'}`}
+                  className={`flex items-center border px-2 py-1 rounded-full cursor-pointer ${thinkModeEnabled ? 'border-yellow-500 text-yellow-500' : 'text-muted-foreground'} transition-all`}
                   onClick={toggleThinkMode}
                 >
                   <Brain className="h-4 w-4" />
