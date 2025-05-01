@@ -1,6 +1,6 @@
 'use client'; // Needed for useState, framer-motion, and client-side logic
 
-import { useState } from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation'; // Changed from next/router
 import { motion } from 'framer-motion';
@@ -11,6 +11,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { AlertCircle } from 'lucide-react';
+import {Separator} from "@radix-ui/react-separator";
+import {GoogleSignInButton} from "@/components/google-signin-button";
 
 export default function Register() {
   const router = useRouter();
@@ -203,6 +205,18 @@ export default function Register() {
           {isLoading ? "Creating account..." : "Create account"}
         </Button>
       </form>
+
+      {/* Google Auth */}
+      <div className="relative">
+        <div className="absolute inset-0 flex items-center">
+          <Separator className="w-full" />
+        </div>
+        <div className="relative flex justify-center text-xs uppercase py-6">
+          <span className="bg-background px-2 text-muted-foreground">OR</span>
+        </div>
+      </div>
+
+      <GoogleSignInButton />
       
       <div className="mt-6 text-center text-sm">
         <span className="text-muted-foreground">Already have an account?</span>{" "}
