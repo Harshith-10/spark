@@ -89,8 +89,8 @@ const Header = ({ toggleSidebar, isSidebarOpen }: HeaderProps) => {
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="relative h-8 w-8 rounded-full">
                 <Avatar className="h-8 w-8">
-                  <AvatarImage src="/avatar2.png" alt="User" />
-                  <AvatarFallback>JD</AvatarFallback>
+                  <AvatarImage src="/images/avatar3.jpg" alt="User" />
+                  <AvatarFallback>HD</AvatarFallback>
                 </Avatar>
               </Button>
             </DropdownMenuTrigger>

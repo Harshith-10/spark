@@ -406,7 +406,7 @@ export default function Tests() {
                         {filteredTests.map((test) => (
                             <motion.div key={test.id} variants={item}>
                                 <div onClick={() => router.push(`/tests/${test.id}?fullscreen=true`)} className="block group hover:scale-[1.02] transition-transform">
-                                    <Card className="overflow-hidden transition-all hover:shadow-md">
+                                    <Card className="overflow-hidden transition-all hover:shadow-md cursor-pointer">
                                         <CardHeader className="relative pb-0">
                                             {test.hasProgress && (
                                                 <div className="absolute right-6">
@@ -481,7 +481,7 @@ export default function Tests() {
                     )}
                 </TabsContent>
 
-                <TabsContent value="inProgress" className="mt-0">
+                <TabsContent value="inProgress" className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
                     {activeTab === "inProgress" && filteredTests.length === 0 ? (
                         <div className="flex flex-col items-center justify-center p-8 text-center">
                             <div className="rounded-full bg-muted p-3">
@@ -512,7 +512,60 @@ export default function Tests() {
                                 </Button>
                             )}
                         </div>
-                    ) : null}
+                    ) : filteredTests.map((test) => (
+                        <motion.div key={test.id} variants={item}>
+                            <div onClick={() => router.push(`/tests/${test.id}?fullscreen=true`)} className="block group hover:scale-[1.02] transition-transform">
+                                <Card className="overflow-hidden transition-all hover:shadow-md cursor-pointer">
+                                    <CardHeader className="relative pb-0">
+                                        {test.hasProgress && (
+                                            <div className="absolute right-6">
+                                                <Badge className="bg-yellow-500 hover:bg-yellow-600">In Progress</Badge>
+                                            </div>
+                                        )}
+                                        <CardTitle className="text-xl group-hover:text-yellow-500 transition-colors">
+                                            {test.title}
+                                        </CardTitle>
+                                        <CardDescription className="flex items-center gap-2 mt-2">
+                                            <Badge variant="outline">{test.category}</Badge>
+                                            <Badge className={difficultyColor(test.difficulty)}>{test.difficulty}</Badge>
+                                        </CardDescription>
+                                    </CardHeader>
+                                    <CardContent className="pt-6">
+                                        <div className="flex justify-between text-sm text-muted-foreground mb-2">
+                                            <div className="flex items-center">
+                                                <BookOpen className="mr-1 h-4 w-4" />
+                                                {test.questions} questions
+                                            </div>
+                                            <div className="flex items-center">
+                                                <Clock className="mr-1 h-4 w-4" />
+                                                {test.duration} min
+                                            </div>
+                                        </div>
+
+                                        {test.hasProgress ? (
+                                            <div className="mt-4">
+                                                <div className="flex justify-between text-sm mb-1">
+                                                    <span>Progress</span>
+                                                    <span className="font-medium">{test.questionsAnswered}/{test.questions}</span>
+                                                </div>
+                                                <Progress value={test.progress} className="h-2" />
+                                            </div>
+                                        ) : (
+                                            <div className="mt-4 mb-3 text-sm text-muted-foreground">
+                                                <span className="font-medium">&nbsp;</span>
+                                            </div>
+                                        )}
+                                    </CardContent>
+                                    <CardFooter className="border-t pt-4 flex justify-between">
+                                        <div className="text-sm text-muted-foreground">
+                                            {test.hasProgress ? "Continue" : "Start Test"}
+                                        </div>
+                                        <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-yellow-500 transition-colors" />
+                                    </CardFooter>
+                                </Card>
+                            </div>
+                        </motion.div>
+                    ))}
                 </TabsContent>
 
                 <TabsContent value="available" className="mt-0">
@@ -537,7 +590,60 @@ export default function Tests() {
                                 </Button>
                             )}
                         </div>
-                    ) : null}
+                    ) : filteredTests.map((test) => (
+                        <motion.div key={test.id} variants={item}>
+                            <div onClick={() => router.push(`/tests/${test.id}?fullscreen=true`)} className="block group hover:scale-[1.02] transition-transform">
+                                <Card className="overflow-hidden transition-all hover:shadow-md cursor-pointer">
+                                    <CardHeader className="relative pb-0">
+                                        {test.hasProgress && (
+                                            <div className="absolute right-6">
+                                                <Badge className="bg-yellow-500 hover:bg-yellow-600">In Progress</Badge>
+                                            </div>
+                                        )}
+                                        <CardTitle className="text-xl group-hover:text-yellow-500 transition-colors">
+                                            {test.title}
+                                        </CardTitle>
+                                        <CardDescription className="flex items-center gap-2 mt-2">
+                                            <Badge variant="outline">{test.category}</Badge>
+                                            <Badge className={difficultyColor(test.difficulty)}>{test.difficulty}</Badge>
+                                        </CardDescription>
+                                    </CardHeader>
+                                    <CardContent className="pt-6">
+                                        <div className="flex justify-between text-sm text-muted-foreground mb-2">
+                                            <div className="flex items-center">
+                                                <BookOpen className="mr-1 h-4 w-4" />
+                                                {test.questions} questions
+                                            </div>
+                                            <div className="flex items-center">
+                                                <Clock className="mr-1 h-4 w-4" />
+                                                {test.duration} min
+                                            </div>
+                                        </div>
+
+                                        {test.hasProgress ? (
+                                            <div className="mt-4">
+                                                <div className="flex justify-between text-sm mb-1">
+                                                    <span>Progress</span>
+                                                    <span className="font-medium">{test.questionsAnswered}/{test.questions}</span>
+                                                </div>
+                                                <Progress value={test.progress} className="h-2" />
+                                            </div>
+                                        ) : (
+                                            <div className="mt-4 mb-3 text-sm text-muted-foreground">
+                                                <span className="font-medium">&nbsp;</span>
+                                            </div>
+                                        )}
+                                    </CardContent>
+                                    <CardFooter className="border-t pt-4 flex justify-between">
+                                        <div className="text-sm text-muted-foreground">
+                                            {test.hasProgress ? "Continue" : "Start Test"}
+                                        </div>
+                                        <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-yellow-500 transition-colors" />
+                                    </CardFooter>
+                                </Card>
+                            </div>
+                        </motion.div>
+                    ))}
                 </TabsContent>
             </Tabs>
         </motion.div>

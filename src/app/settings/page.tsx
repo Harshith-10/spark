@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -17,16 +17,15 @@ import { useTheme } from '@/components/theme-provider';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 export default function Settings() {
-  const { toast } = useToast();
   const { theme, setTheme } = useTheme();
-  
+
   // User profile state
   const [userProfile, setUserProfile] = useState({
-    name: "Harshith Doddipalli",
-    email: "harshith.doddipalli@outlook.com",
-    avatar: "/avatar.jpg",
+    name: "Yechika",
+    email: "chika.h@gmail.com",
+    avatar: "/images/avatar3.jpg",
   });
-  
+
   // Notification settings state
   const [notificationSettings, setNotificationSettings] = useState({
     newTests: true,
@@ -34,11 +33,11 @@ export default function Settings() {
     studyReminders: false,
     marketingEmails: false,
   });
-  
+
   // Appearance settings state
   const [fontSizePreference, setFontSizePreference] = useState("medium");
   const [motionReduced, setMotionReduced] = useState(false);
-  
+
   // Test settings state
   const [testSettings, setTestSettings] = useState({
     autoSubmit: true,
@@ -46,7 +45,7 @@ export default function Settings() {
     soundEffects: false,
     timerPosition: "top",
   });
-  
+
   // Handle profile form submit
   const handleProfileSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -54,28 +53,28 @@ export default function Settings() {
       description: "Your profile information has been updated successfully.",
     });
   };
-  
+
   // Save notification settings
   const handleSaveNotifications = () => {
     toast("Notifications updated", {
       description: "Your notification settings have been saved.",
     });
   };
-  
+
   // Save appearance settings
   const handleSaveAppearance = () => {
     toast("Appearance settings updated", {
       description: "Your appearance preferences have been saved.",
     });
   };
-  
+
   // Save test settings
   const handleSaveTestSettings = () => {
     toast("Test preferences updated", {
       description: "Your test settings have been saved.",
     });
   };
-  
+
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -89,7 +88,7 @@ export default function Settings() {
           Manage your account settings and preferences
         </p>
       </div>
-      
+
       <Tabs defaultValue="profile" className="w-full">
         <TabsList className="mb-3">
           <TabsTrigger value="profile">Profile</TabsTrigger>
@@ -97,7 +96,7 @@ export default function Settings() {
           <TabsTrigger value="appearance">Appearance</TabsTrigger>
           <TabsTrigger value="tests">Test Preferences</TabsTrigger>
         </TabsList>
-        
+
         {/* Profile Settings */}
         <TabsContent value="profile" className="mt-0">
           <form onSubmit={handleProfileSubmit}>
@@ -119,44 +118,44 @@ export default function Settings() {
                       Change Avatar
                     </Button>
                   </div>
-                  
+
                   <div className="space-y-4 flex-1">
                     <div className="grid gap-2">
                       <Label htmlFor="name">Full Name</Label>
-                      <Input 
-                        id="name" 
+                      <Input
+                        id="name"
                         value={userProfile.name}
-                        onChange={(e) => setUserProfile({...userProfile, name: e.target.value})}
+                        onChange={(e) => setUserProfile({ ...userProfile, name: e.target.value })}
                       />
                     </div>
-                    
+
                     <div className="grid gap-2">
                       <Label htmlFor="email">Email Address</Label>
-                      <Input 
-                        id="email" 
-                        type="email" 
+                      <Input
+                        id="email"
+                        type="email"
                         value={userProfile.email}
-                        onChange={(e) => setUserProfile({...userProfile, email: e.target.value})}
+                        onChange={(e) => setUserProfile({ ...userProfile, email: e.target.value })}
                       />
                     </div>
                   </div>
                 </div>
-                
+
                 <Separator />
-                
+
                 <div className="space-y-4">
                   <h3 className="text-lg font-medium">Security</h3>
-                  
+
                   <div className="grid gap-2">
                     <Label htmlFor="current-password">Current Password</Label>
                     <Input id="current-password" type="password" />
                   </div>
-                  
+
                   <div className="grid gap-2">
                     <Label htmlFor="new-password">New Password</Label>
                     <Input id="new-password" type="password" />
                   </div>
-                  
+
                   <div className="grid gap-2">
                     <Label htmlFor="confirm-password">Confirm New Password</Label>
                     <Input id="confirm-password" type="password" />
@@ -172,7 +171,7 @@ export default function Settings() {
             </Card>
           </form>
         </TabsContent>
-        
+
         {/* Notification Settings */}
         <TabsContent value="notifications" className="mt-0">
           <Card>
@@ -185,7 +184,7 @@ export default function Settings() {
             <CardContent className="space-y-6">
               <div className="space-y-4">
                 <h3 className="text-lg font-medium">Email Notifications</h3>
-                
+
                 <div className="flex items-center justify-between">
                   <div className="space-y-0.5">
                     <Label htmlFor="new-tests">New Tests Available</Label>
@@ -193,15 +192,15 @@ export default function Settings() {
                       Receive notifications when new tests are published
                     </p>
                   </div>
-                  <Switch 
+                  <Switch
                     id="new-tests"
                     checked={notificationSettings.newTests}
-                    onCheckedChange={(checked) => setNotificationSettings({...notificationSettings, newTests: checked})}
+                    onCheckedChange={(checked) => setNotificationSettings({ ...notificationSettings, newTests: checked })}
                   />
                 </div>
-                
+
                 <Separator />
-                
+
                 <div className="flex items-center justify-between">
                   <div className="space-y-0.5">
                     <Label htmlFor="test-results">Test Results</Label>
@@ -209,15 +208,15 @@ export default function Settings() {
                       Get notified when your test results are ready
                     </p>
                   </div>
-                  <Switch 
+                  <Switch
                     id="test-results"
                     checked={notificationSettings.testResults}
-                    onCheckedChange={(checked) => setNotificationSettings({...notificationSettings, testResults: checked})}
+                    onCheckedChange={(checked) => setNotificationSettings({ ...notificationSettings, testResults: checked })}
                   />
                 </div>
-                
+
                 <Separator />
-                
+
                 <div className="flex items-center justify-between">
                   <div className="space-y-0.5">
                     <Label htmlFor="study-reminders">Study Reminders</Label>
@@ -225,15 +224,15 @@ export default function Settings() {
                       Receive periodic reminders to continue your learning
                     </p>
                   </div>
-                  <Switch 
+                  <Switch
                     id="study-reminders"
                     checked={notificationSettings.studyReminders}
-                    onCheckedChange={(checked) => setNotificationSettings({...notificationSettings, studyReminders: checked})}
+                    onCheckedChange={(checked) => setNotificationSettings({ ...notificationSettings, studyReminders: checked })}
                   />
                 </div>
-                
+
                 <Separator />
-                
+
                 <div className="flex items-center justify-between">
                   <div className="space-y-0.5">
                     <Label htmlFor="marketing-emails">Marketing Emails</Label>
@@ -241,19 +240,19 @@ export default function Settings() {
                       Receive updates about new features and services
                     </p>
                   </div>
-                  <Switch 
+                  <Switch
                     id="marketing-emails"
                     checked={notificationSettings.marketingEmails}
-                    onCheckedChange={(checked) => setNotificationSettings({...notificationSettings, marketingEmails: checked})}
+                    onCheckedChange={(checked) => setNotificationSettings({ ...notificationSettings, marketingEmails: checked })}
                   />
                 </div>
               </div>
-              
+
               <Separator />
-              
+
               <div className="space-y-4">
                 <h3 className="text-lg font-medium">Push Notifications</h3>
-                
+
                 <div className="flex items-center justify-between">
                   <div className="space-y-0.5">
                     <Label>Enable Push Notifications</Label>
@@ -276,7 +275,7 @@ export default function Settings() {
             </CardFooter>
           </Card>
         </TabsContent>
-        
+
         {/* Appearance Settings */}
         <TabsContent value="appearance" className="mt-0">
           <Card>
@@ -289,9 +288,9 @@ export default function Settings() {
             <CardContent className="space-y-6">
               <div className="space-y-4">
                 <h3 className="text-lg font-medium">Theme</h3>
-                
-                <RadioGroup 
-                  defaultValue={theme} 
+
+                <RadioGroup
+                  defaultValue={theme}
                   onValueChange={(value) => setTheme(value as 'light' | 'dark' | 'system')}
                   className="grid grid-cols-3 gap-4"
                 >
@@ -309,7 +308,7 @@ export default function Settings() {
                       Light
                     </Label>
                   </div>
-                  
+
                   <div>
                     <RadioGroupItem
                       value="dark"
@@ -324,7 +323,7 @@ export default function Settings() {
                       Dark
                     </Label>
                   </div>
-                  
+
                   <div>
                     <RadioGroupItem
                       value="system"
@@ -341,13 +340,13 @@ export default function Settings() {
                   </div>
                 </RadioGroup>
               </div>
-              
+
               <Separator />
-              
+
               <div className="space-y-4">
                 <h3 className="text-lg font-medium">Font Size</h3>
-                
-                <RadioGroup 
+
+                <RadioGroup
                   defaultValue={fontSizePreference}
                   onValueChange={setFontSizePreference}
                   className="grid grid-cols-3 gap-4"
@@ -366,7 +365,7 @@ export default function Settings() {
                       Small
                     </Label>
                   </div>
-                  
+
                   <div>
                     <RadioGroupItem
                       value="medium"
@@ -381,7 +380,7 @@ export default function Settings() {
                       Medium
                     </Label>
                   </div>
-                  
+
                   <div>
                     <RadioGroupItem
                       value="large"
@@ -398,12 +397,12 @@ export default function Settings() {
                   </div>
                 </RadioGroup>
               </div>
-              
+
               <Separator />
-              
+
               <div className="space-y-4">
                 <h3 className="text-lg font-medium">Accessibility</h3>
-                
+
                 <div className="flex items-center justify-between">
                   <div className="space-y-0.5">
                     <Label htmlFor="reduce-motion">Reduce Motion</Label>
@@ -411,7 +410,7 @@ export default function Settings() {
                       Minimize animations throughout the interface
                     </p>
                   </div>
-                  <Switch 
+                  <Switch
                     id="reduce-motion"
                     checked={motionReduced}
                     onCheckedChange={setMotionReduced}
@@ -427,7 +426,7 @@ export default function Settings() {
             </CardFooter>
           </Card>
         </TabsContent>
-        
+
         {/* Test Preferences */}
         <TabsContent value="tests" className="mt-0">
           <Card>
@@ -440,7 +439,7 @@ export default function Settings() {
             <CardContent className="space-y-6">
               <div className="space-y-4">
                 <h3 className="text-lg font-medium">Test Behavior</h3>
-                
+
                 <div className="flex items-center justify-between">
                   <div className="space-y-0.5">
                     <Label htmlFor="auto-submit">Auto Submit</Label>
@@ -448,15 +447,15 @@ export default function Settings() {
                       Automatically submit tests when time expires
                     </p>
                   </div>
-                  <Switch 
+                  <Switch
                     id="auto-submit"
                     checked={testSettings.autoSubmit}
-                    onCheckedChange={(checked) => setTestSettings({...testSettings, autoSubmit: checked})}
+                    onCheckedChange={(checked) => setTestSettings({ ...testSettings, autoSubmit: checked })}
                   />
                 </div>
-                
+
                 <Separator />
-                
+
                 <div className="flex items-center justify-between">
                   <div className="space-y-0.5">
                     <Label htmlFor="show-timer">Show Timer</Label>
@@ -464,15 +463,15 @@ export default function Settings() {
                       Display countdown timer during tests
                     </p>
                   </div>
-                  <Switch 
+                  <Switch
                     id="show-timer"
                     checked={testSettings.showTimer}
-                    onCheckedChange={(checked) => setTestSettings({...testSettings, showTimer: checked})}
+                    onCheckedChange={(checked) => setTestSettings({ ...testSettings, showTimer: checked })}
                   />
                 </div>
-                
+
                 <Separator />
-                
+
                 <div className="flex items-center justify-between">
                   <div className="space-y-0.5">
                     <Label htmlFor="sound-effects">Sound Effects</Label>
@@ -480,24 +479,24 @@ export default function Settings() {
                       Play sound when time is running low
                     </p>
                   </div>
-                  <Switch 
+                  <Switch
                     id="sound-effects"
                     checked={testSettings.soundEffects}
-                    onCheckedChange={(checked) => setTestSettings({...testSettings, soundEffects: checked})}
+                    onCheckedChange={(checked) => setTestSettings({ ...testSettings, soundEffects: checked })}
                   />
                 </div>
               </div>
-              
+
               <Separator />
-              
+
               <div className="space-y-4">
                 <h3 className="text-lg font-medium">Display Options</h3>
-                
+
                 <div className="grid gap-2">
                   <Label htmlFor="timer-position">Timer Position</Label>
-                  <Select 
+                  <Select
                     value={testSettings.timerPosition}
-                    onValueChange={(value) => setTestSettings({...testSettings, timerPosition: value})}
+                    onValueChange={(value) => setTestSettings({ ...testSettings, timerPosition: value })}
                   >
                     <SelectTrigger id="timer-position">
                       <SelectValue placeholder="Select position" />

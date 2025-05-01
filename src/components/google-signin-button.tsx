@@ -21,14 +21,14 @@ export function GoogleSignInButton({ className }: GoogleSignInButtonProps) {
     <form onSubmit={handleSubmit}>
       <Button
         variant="outline"
-        className={`w-full flex items-center gap-2 ${className}`}
+        className={`w-full py-4 flex items-center gap-2 ${className}`}
         type="submit"
       >
         <Image
           src="/google-icon.svg"
           alt="Google logo"
-          width={18}
-          height={18}
+          width={24}
+          height={24}
         />
         <span>Sign in with Google</span>
       </Button>

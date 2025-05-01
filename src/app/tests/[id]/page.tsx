@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { Clock, ArrowLeft, ArrowRight, Save, Flag, Check, CheckCircle, XCircle, AlertCircle, Maximize } from 'lucide-react';
+import { Clock, ArrowLeft, ArrowRight, Save, Flag, Check, CheckCircle, XCircle, AlertCircle, Maximize, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Card, CardContent } from '@/components/ui/card';
@@ -19,7 +19,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
 // Define browser-specific fullscreen API interfaces
@@ -192,7 +192,6 @@ const TimerDisplay = ({ timeLeft, progress }: TimerDisplayProps) => {
 
 export default function TestDetail() {
   const router = useRouter();
-  const { toast } = useToast();
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [userAnswers, setUserAnswers] = useState<UserAnswer[]>([]);
   const [timeLeft, setTimeLeft] = useState(mockTestData.duration * 60); // Convert minutes to seconds
@@ -200,6 +199,11 @@ export default function TestDetail() {
   const [testSubmitted, setTestSubmitted] = useState(false);
   const [score, setScore] = useState(0);
   const [showFullscreenWarning, setShowFullscreenWarning] = useState(false);
+  
+  // Tab switching and focus detection
+  const [showTabSwitchWarning, setShowTabSwitchWarning] = useState(false);
+  const [malpracticeAttempts, setMalpracticeAttempts] = useState(0);
+  const MAX_MALPRACTICE_ATTEMPTS = 5;
 
   const containerRef = useRef<HTMLDivElement>(null);
   const portalContainerRef = useRef<HTMLDivElement>(null);
@@ -319,6 +323,59 @@ export default function TestDetail() {
       handleSubmitTest();
     }
   }, [timeLeft, testSubmitted, handleSubmitTest]);
+
+  // Handle tab/focus detection
+  useEffect(() => {
+    if (testSubmitted) return; // Don't track after test is submitted
+
+    // Handler for visibility change (tab switching)
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'hidden' && !testSubmitted) {
+        // User switched tabs or minimized window
+        recordMalpractice();
+      }
+    };
+
+    // Handler for when window loses focus
+    const handleBlur = () => {
+      if (!testSubmitted) {
+        recordMalpractice();
+      }
+    };
+
+    // Record a malpractice attempt
+    const recordMalpractice = () => {
+      setMalpracticeAttempts(prev => {
+        const newAttempts = prev + 1;
+        
+        // Show warning dialog
+        setShowTabSwitchWarning(true);
+        
+        // If reached max attempts, auto-submit the test
+        if (newAttempts >= MAX_MALPRACTICE_ATTEMPTS) {
+          // Delay the submission to allow the warning to be seen
+          setTimeout(() => {
+            toast.error("Test terminated due to multiple malpractice attempts", {
+              description: "Your test has been automatically submitted",
+            });
+            handleSubmitTest();
+          }, 3000);
+        }
+        
+        return newAttempts;
+      });
+    };
+
+    // Add event listeners
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('blur', handleBlur);
+
+    // Clean up
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('blur', handleBlur);
+    };
+  }, [testSubmitted, handleSubmitTest]);
 
   // Current question
   const currentQuestion = mockTestData.questions[currentQuestionIndex];
@@ -788,6 +845,49 @@ export default function TestDetail() {
             >
               <Maximize className="h-4 w-4 mr-2" />
               Return to Fullscreen
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Tab switching warning dialog */}
+      <AlertDialog
+        open={showTabSwitchWarning}
+        onOpenChange={(open) => {
+          if (!open) {
+            setShowTabSwitchWarning(false);
+          }
+        }}
+      >
+        <AlertDialogContent
+          container={portalContainerRef.current ?? undefined}
+          className="max-w-md"
+        >
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-red-500 flex items-center">
+              <ExternalLink className="h-5 w-5 mr-2" />
+              Malpractice Warning
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              <p className="mb-2">You have switched tabs or lost focus from the test window. This is considered exam malpractice.</p>
+              <p className="font-medium mt-4">Attempt {Math.floor(malpracticeAttempts / 2)} of {Math.ceil(MAX_MALPRACTICE_ATTEMPTS / 2)}</p>
+              <Progress value={(malpracticeAttempts / MAX_MALPRACTICE_ATTEMPTS) * 100} className="h-2 mt-2" />
+              {malpracticeAttempts > MAX_MALPRACTICE_ATTEMPTS - 2 && malpracticeAttempts < MAX_MALPRACTICE_ATTEMPTS && (
+                <p className="text-red-500 text-sm mt-2 font-medium">Warning: Next violation will terminate your test!</p>
+              )}
+              {malpracticeAttempts >= MAX_MALPRACTICE_ATTEMPTS && (
+                <p className="text-red-500 text-sm mt-2 font-medium">Warning: You have been marked for malpractice and your test has been terminated.</p>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogAction
+              className="bg-red-500 hover:bg-red-600 w-full"
+              onClick={() => {
+                setShowTabSwitchWarning(false);
+              }}
+            >
+              I Understand
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

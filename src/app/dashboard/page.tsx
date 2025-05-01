@@ -14,12 +14,12 @@ import { useMediaQuery } from '@/hooks/use-media-query';
 
 // Mock data for the score chart
 const scoreData = [
-  { name: 'Jan', score: 65, average: 72 },
-  { name: 'Feb', score: 75, average: 74 },
-  { name: 'Mar', score: 85, average: 75 },
-  { name: 'Apr', score: 70, average: 73 },
-  { name: 'May', score: 90, average: 78 },
-  { name: 'Jun', score: 95, average: 79 },
+  { name: 'Jan', score: 78, average: 68 },
+  { name: 'Feb', score: 75, average: 65 },
+  { name: 'Mar', score: 85, average: 69 },
+  { name: 'Apr', score: 96, average: 73 },
+  { name: 'May', score: 90, average: 64 },
+  { name: 'Jun', score: 98, average: 65 },
 ];
 
 // Mock data for upcoming tests
@@ -31,10 +31,10 @@ const upcomingTests = [
 
 // Mock data for leaderboard
 const leaderboardData = [
-  { id: 1, name: 'Yechii', score: 98, avatar: '/avatar3.jpg' },
-  { id: 2, name: 'Harshith Doddipalli', score: 94, avatar: '/avatar.jpg' },
-  { id: 3, name: 'Gautham Sharma', score: 91, avatar: '/avatar2.png' },
-  { id: 4, name: 'You', score: 90, avatar: '/avatar.jpg', isCurrentUser: true },
+  { id: 1, name: 'Yechii', score: 98, avatar: '/images/avatar3.jpg' },
+  { id: 2, name: 'Harshith Doddipalli', score: 94, avatar: '/images/avatar.jpg' },
+  { id: 3, name: 'Gautham Sharma', score: 91, avatar: '/images/avatar2.png' },
+  { id: 4, name: 'You', score: 90, avatar: '/images/avatar.jpg', isCurrentUser: true },
   { id: 5, name: 'Michael Johnson', score: 85, avatar: 'https://i.pravatar.cc/150?img=59' },
 ];
 
@@ -44,7 +44,7 @@ const recentActivity = [
     id: 1,
     type: 'test_completed',
     title: 'Advanced Physics',
-    score: 92,
+    score: 98,
     maxScore: 100,
     date: '2d ago'
   },
@@ -326,18 +326,21 @@ export default function Dashboard() {
             <div className="mt-4 pt-4 border-t">
               <h4 className="text-sm font-medium mb-3">Your Ranking</h4>
               <div className="flex items-center">
-                <div className="flex items-center justify-center h-9 w-9 rounded-full bg-muted text-muted-foreground font-bold shrink-0">
-                  4
+                <div className="flex items-center justify-center h-9 w-9 rounded-full bg-yellow-500 text-foreground font-bold shrink-0">
+                  1
                 </div>
                 <Avatar className="h-9 w-9 ml-3 ring-2 ring-yellow-500">
-                  <AvatarImage src="/avatar.png" alt="You" />
-                  <AvatarFallback>ME</AvatarFallback>
+                  <AvatarImage src="/images/avatar3.jpg" alt="You" />
+                  <AvatarFallback>HD</AvatarFallback>
                 </Avatar>
                 <div className="ml-4 space-y-1">
                   <p className="text-sm font-medium leading-none">You</p>
                   <p className="text-sm text-muted-foreground">
-                    Score: 90%
+                    Score: 98%
                   </p>
+                </div>
+                <div className="ml-auto flex h-8 w-8 items-center justify-center rounded-full bg-yellow-500/20">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-yellow-500"><circle cx="12" cy="8" r="6"></circle><path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"></path></svg>
                 </div>
               </div>
             </div>

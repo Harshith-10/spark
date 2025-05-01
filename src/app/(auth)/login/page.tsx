@@ -125,8 +125,10 @@ export default function Login() {
         <div className="absolute inset-0 flex items-center">
           <Separator className="w-full" />
         </div>
-        <div className="relative flex justify-center text-xs uppercase py-6">
+        <div className="relative flex justify-center items-center text-xs uppercase py-6">
+          <hr className='flex-1'></hr>
           <span className="bg-background px-2 text-muted-foreground">OR</span>
+          <hr className='flex-1'></hr>
         </div>
       </div>
 
