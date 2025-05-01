@@ -10,7 +10,6 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { cn } from '@/lib/utils';
-import { Prompt } from 'next/font/google';
 import Markdown from 'react-markdown';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
@@ -138,7 +137,7 @@ export default function Chat() {
   };
 
   // Function to communicate with Ollama API
-  const fetchOllamaResponse = async (userMessage: string, chatHistory: Message[]): Promise<void> => { // Promise<string> => {
+  const fetchOllamaResponse = async (userMessage: string, chatHistory: Message[]): Promise<void> => {
     try {
       const ollamaMessages: OllamaMessage[] = chatHistory.map((msg) => ({
         role: msg.sender === 'user' ? 'user' : 'assistant',
