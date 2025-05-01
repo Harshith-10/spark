@@ -68,7 +68,7 @@ const Sidebar = ({ isOpen }: SidebarProps) => {
     },
     {
       icon: <MessageSquare className="h-5 w-5" />,
-      label: "AI Tutor",
+      label: "Spark AI",
       path: "/chat",
     },
     {
@@ -107,7 +107,7 @@ const Sidebar = ({ isOpen }: SidebarProps) => {
               <div className="rounded-md bg-yellow-500/10 p-4">
                 <h3 className="font-medium text-yellow-500">Pro Tip</h3>
                 <p className="text-sm mt-1 text-muted-foreground">
-                  Use our AI tutor to get help with difficult concepts!
+                  Use Spark AI to get help with difficult concepts!
                 </p>
               </div>
             </div>

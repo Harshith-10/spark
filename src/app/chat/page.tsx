@@ -79,7 +79,7 @@ interface Prompt {
 const initialChatHistory: Message[] = [
   {
     id: '1',
-    text: "Hello! I'm your AI tutor. How can I help you with your studies today?",
+    text: "Hello! I'm Spark, your AI Tutor. How can I help you with your studies today?",
     sender: 'ai',
     timestamp: new Date(Date.now()),
   },
@@ -448,7 +448,7 @@ export default function Chat() {
         <div className="hidden md:block md:col-span-1">
           <Card className="h-full flex flex-col">
             <CardHeader>
-              <CardTitle className="text-xl">AI Tutor</CardTitle>
+              <CardTitle className="text-xl">Spark AI</CardTitle>
             </CardHeader>
             <CardContent className="flex flex-col h-full space-y-4">
               {/* New chat button */}
@@ -504,7 +504,7 @@ export default function Chat() {
 
               <div className="mt-auto pt-4 border-t">
                 <p className="text-xs text-muted-foreground">
-                  Our AI tutor is here to help with your learning needs. Ask questions about concepts, request practice problems, or get help with specific subjects.
+                  Spark AI is here to help with your learning needs. Ask questions about concepts, request practice problems, or get help with specific subjects.
                 </p>
               </div>
             </CardContent>
@@ -520,7 +520,7 @@ export default function Chat() {
                 <div className="h-8 w-8 rounded-full bg-yellow-500/10 flex items-center justify-center mr-3">
                   <Bot className="h-4 w-4 text-yellow-500" />
                 </div>
-                <CardTitle className="text-xl">AI Tutor Chat</CardTitle>
+                <CardTitle className="text-xl">New Chat</CardTitle>
               </div>
               <Button
                 variant="ghost"
