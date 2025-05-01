@@ -50,7 +50,7 @@ const Header = ({ toggleSidebar, isSidebarOpen }: HeaderProps) => {
             {isSidebarOpen ? <SidebarCloseIcon className="h-6 w-6" /> : <SidebarOpenIcon className="h-6 w-6" />}
           </Button>
           <Link href="/dashboard"
-            className={`${isSidebarOpen ? 'ml-50' : ''} flex items-center space-x-2 transition-all duration-300`}
+            className="flex items-center space-x-2"
           >
             <Sparkles className="h-6 w-6 text-yellow-500" />
             <span className="text-xl font-bold">Spark</span>
@@ -89,7 +89,7 @@ const Header = ({ toggleSidebar, isSidebarOpen }: HeaderProps) => {
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="relative h-8 w-8 rounded-full">
                 <Avatar className="h-8 w-8">
-                  <AvatarImage src="https://i.pravatar.cc/150?img=68" alt="User" />
+                  <AvatarImage src="/avatar2.png" alt="User" />
                   <AvatarFallback>JD</AvatarFallback>
                 </Avatar>
               </Button>

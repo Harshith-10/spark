@@ -533,9 +533,9 @@ export default function Chat() {
               </Button>
             </div>
             {errorMessage && (
-              <div className="mt-2 p-2 bg-red-100 text-red-700 text-sm rounded-md flex items-center">
+              <div className="mt-2 p-2 bg-red-100 text-red-700 text-sm rounded-md flex items-center" onClick={() => setErrorMessage(null)}>
                 <span className="mr-1">⚠️</span>
-                {errorMessage}
+                {errorMessage + " Click to dismiss."}
               </div>
             )}
           </CardHeader>
@@ -627,15 +627,15 @@ export default function Chat() {
           </div>
 
           {/* Fixed input area */}
-          <CardContent className="p-4 border-t mt-auto">
+          <CardContent className="px-4 pt-4 border-t mt-auto">
             <div className="flex items-center justify-start mb-2">
               <div className="flex items-center space-x-2">
                 <Label
                   htmlFor="think-mode"
-                  className={`flex items-center border px-2 py-1 rounded-full cursor-pointer ${thinkModeEnabled ? 'border-yellow-500 text-yellow-500' : 'text-muted-foreground'} transition-all`}
+                  className={`flex gap-${thinkModeEnabled ? '2' : '1'} transition-all duration-300 items-center border px-2 py-1 rounded-full cursor-pointer ${thinkModeEnabled ? 'border-yellow-500 text-yellow-500' : 'text-muted-foreground hover:border-yellow-700'}`}
                   onClick={toggleThinkMode}
                 >
-                  <Brain className="h-4 w-4" />
+                  <Brain className={`h-4 w-4 transition-transform duration-300 ${thinkModeEnabled && 'scale-115'}`} />
                   <span className="text-sm">Think</span>
                 </Label>
               </div>

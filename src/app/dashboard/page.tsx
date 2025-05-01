@@ -31,10 +31,10 @@ const upcomingTests = [
 
 // Mock data for leaderboard
 const leaderboardData = [
-  { id: 1, name: 'Emma Thompson', score: 98, avatar: 'https://i.pravatar.cc/150?img=36' },
-  { id: 2, name: 'Daniel Lee', score: 94, avatar: 'https://i.pravatar.cc/150?img=68' },
-  { id: 3, name: 'Olivia Martinez', score: 91, avatar: 'https://i.pravatar.cc/150?img=47' },
-  { id: 4, name: 'You', score: 87, avatar: 'https://i.pravatar.cc/150?img=12', isCurrentUser: true },
+  { id: 1, name: 'Yechii', score: 98, avatar: '/avatar3.jpg' },
+  { id: 2, name: 'Harshith Doddipalli', score: 94, avatar: '/avatar.jpg' },
+  { id: 3, name: 'Gautham Sharma', score: 91, avatar: '/avatar2.png' },
+  { id: 4, name: 'You', score: 90, avatar: '/avatar.jpg', isCurrentUser: true },
   { id: 5, name: 'Michael Johnson', score: 85, avatar: 'https://i.pravatar.cc/150?img=59' },
 ];
 
@@ -330,13 +330,13 @@ export default function Dashboard() {
                   4
                 </div>
                 <Avatar className="h-9 w-9 ml-3 ring-2 ring-yellow-500">
-                  <AvatarImage src="https://i.pravatar.cc/150?img=12" alt="You" />
+                  <AvatarImage src="/avatar.png" alt="You" />
                   <AvatarFallback>ME</AvatarFallback>
                 </Avatar>
                 <div className="ml-4 space-y-1">
                   <p className="text-sm font-medium leading-none">You</p>
                   <p className="text-sm text-muted-foreground">
-                    Score: 87%
+                    Score: 90%
                   </p>
                 </div>
               </div>

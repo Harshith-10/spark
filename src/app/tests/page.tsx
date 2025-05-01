@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { Search, Filter, Clock, BookOpen, ChevronRight, CheckIcon, X } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -122,39 +122,40 @@ const categoryOptions = ["Mathematics", "English", "Science", "Social Studies", 
 const allTests = [...inProgressTests, ...availableTests];
 
 export default function Tests() {
+    const router = useRouter();
     const [searchTerm, setSearchTerm] = useState("");
     const [filteredTests, setFilteredTests] = useState(allTests);
     const [activeTab, setActiveTab] = useState("all");
-    
+
     // New state for filters
     const [selectedDifficulty, setSelectedDifficulty] = useState<string | null>(null);
     const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
     // Apply all filters (search, tab, difficulty, category)
     const applyFilters = (
-        tests: Test[], 
-        term: string, 
-        tab: string, 
-        difficulty: string | null, 
+        tests: Test[],
+        term: string,
+        tab: string,
+        difficulty: string | null,
         category: string | null
     ) => {
         return tests.filter(test => {
             // Filter by search term
-            const matchesSearch = !term || 
-                test.title.toLowerCase().includes(term.toLowerCase()) || 
+            const matchesSearch = !term ||
+                test.title.toLowerCase().includes(term.toLowerCase()) ||
                 test.category.toLowerCase().includes(term.toLowerCase());
-            
+
             // Filter by tab (progress status)
-            const matchesTab = tab === "all" || 
-                (tab === "inProgress" && test.hasProgress) || 
+            const matchesTab = tab === "all" ||
+                (tab === "inProgress" && test.hasProgress) ||
                 (tab === "available" && !test.hasProgress);
-            
+
             // Filter by difficulty
             const matchesDifficulty = !difficulty || test.difficulty === difficulty;
-            
+
             // Filter by category
             const matchesCategory = !category || test.category === category;
-            
+
             return matchesSearch && matchesTab && matchesDifficulty && matchesCategory;
         });
     };
@@ -163,12 +164,12 @@ export default function Tests() {
     const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
         const term = e.target.value.toLowerCase();
         setSearchTerm(term);
-        
+
         setFilteredTests(applyFilters(
-            allTests, 
-            term, 
-            activeTab, 
-            selectedDifficulty, 
+            allTests,
+            term,
+            activeTab,
+            selectedDifficulty,
             selectedCategory
         ));
     };
@@ -176,59 +177,59 @@ export default function Tests() {
     // Handle tab change
     const handleTabChange = (value: string) => {
         setActiveTab(value);
-        
+
         setFilteredTests(applyFilters(
-            allTests, 
-            searchTerm, 
-            value, 
-            selectedDifficulty, 
+            allTests,
+            searchTerm,
+            value,
+            selectedDifficulty,
             selectedCategory
         ));
     };
-    
+
     // Handle difficulty filter selection
     const handleDifficultySelect = (difficulty: string) => {
         const newValue = selectedDifficulty === difficulty ? null : difficulty;
         setSelectedDifficulty(newValue);
-        
+
         setFilteredTests(applyFilters(
-            allTests, 
-            searchTerm, 
-            activeTab, 
-            newValue, 
+            allTests,
+            searchTerm,
+            activeTab,
+            newValue,
             selectedCategory
         ));
     };
-    
+
     // Handle category filter selection
     const handleCategorySelect = (category: string) => {
         const newValue = selectedCategory === category ? null : category;
         setSelectedCategory(newValue);
-        
+
         setFilteredTests(applyFilters(
-            allTests, 
-            searchTerm, 
-            activeTab, 
-            selectedDifficulty, 
+            allTests,
+            searchTerm,
+            activeTab,
+            selectedDifficulty,
             newValue
         ));
     };
-    
+
     // Clear all filters
     const clearFilters = () => {
         setSelectedDifficulty(null);
         setSelectedCategory(null);
         setSearchTerm("");
-        
+
         setFilteredTests(applyFilters(
-            allTests, 
-            "", 
-            activeTab, 
-            null, 
+            allTests,
+            "",
+            activeTab,
+            null,
             null
         ));
     };
-    
+
     // Check if any filters are applied
     const hasActiveFilters = selectedDifficulty !== null || selectedCategory !== null || searchTerm !== "";
 
@@ -311,7 +312,7 @@ export default function Tests() {
                             <DropdownMenuSeparator />
                             <DropdownMenuLabel className="text-xs font-normal text-muted-foreground">Difficulty</DropdownMenuLabel>
                             {difficultyOptions.map(difficulty => (
-                                <DropdownMenuItem 
+                                <DropdownMenuItem
                                     key={difficulty}
                                     className="flex items-center justify-between cursor-pointer"
                                     onClick={() => handleDifficultySelect(difficulty)}
@@ -325,7 +326,7 @@ export default function Tests() {
                             <DropdownMenuSeparator />
                             <DropdownMenuLabel className="text-xs font-normal text-muted-foreground">Category</DropdownMenuLabel>
                             {categoryOptions.map(category => (
-                                <DropdownMenuItem 
+                                <DropdownMenuItem
                                     key={category}
                                     className="flex items-center justify-between cursor-pointer"
                                     onClick={() => handleCategorySelect(category)}
@@ -340,16 +341,16 @@ export default function Tests() {
                     </DropdownMenu>
                 </div>
             </div>
-            
+
             {hasActiveFilters && (
                 <div className="flex flex-wrap gap-2">
                     {selectedDifficulty && (
                         <Badge variant="secondary" className="px-2 py-1 h-7 flex items-center gap-1">
                             Difficulty: {selectedDifficulty}
-                            <Button 
-                                variant="ghost" 
-                                size="icon" 
-                                className="h-4 w-4 p-0 ml-1" 
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-4 w-4 p-0 ml-1"
                                 onClick={() => handleDifficultySelect(selectedDifficulty)}
                             >
                                 <X className="h-3 w-3" />
@@ -359,10 +360,10 @@ export default function Tests() {
                     {selectedCategory && (
                         <Badge variant="secondary" className="px-2 py-1 h-7 flex items-center gap-1">
                             Category: {selectedCategory}
-                            <Button 
-                                variant="ghost" 
-                                size="icon" 
-                                className="h-4 w-4 p-0 ml-1" 
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-4 w-4 p-0 ml-1"
                                 onClick={() => handleCategorySelect(selectedCategory)}
                             >
                                 <X className="h-3 w-3" />
@@ -372,10 +373,10 @@ export default function Tests() {
                     {searchTerm && (
                         <Badge variant="secondary" className="px-2 py-1 h-7 flex items-center gap-1">
                             Search: {searchTerm}
-                            <Button 
-                                variant="ghost" 
-                                size="icon" 
-                                className="h-4 w-4 p-0 ml-1" 
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-4 w-4 p-0 ml-1"
                                 onClick={() => {
                                     setSearchTerm("");
                                     setFilteredTests(applyFilters(allTests, "", activeTab, selectedDifficulty, selectedCategory));
@@ -404,11 +405,11 @@ export default function Tests() {
                     >
                         {filteredTests.map((test) => (
                             <motion.div key={test.id} variants={item}>
-                                <Link href={`/tests/${test.id}`} className="block group">
+                                <div onClick={() => router.push(`/tests/${test.id}?fullscreen=true`)} className="block group hover:scale-[1.02] transition-transform">
                                     <Card className="overflow-hidden transition-all hover:shadow-md">
                                         <CardHeader className="relative pb-0">
                                             {test.hasProgress && (
-                                                <div className="absolute top-2 right-2">
+                                                <div className="absolute right-6">
                                                     <Badge className="bg-yellow-500 hover:bg-yellow-600">In Progress</Badge>
                                                 </div>
                                             )}
@@ -432,13 +433,17 @@ export default function Tests() {
                                                 </div>
                                             </div>
 
-                                            {test.hasProgress && (
+                                            {test.hasProgress ? (
                                                 <div className="mt-4">
                                                     <div className="flex justify-between text-sm mb-1">
                                                         <span>Progress</span>
                                                         <span className="font-medium">{test.questionsAnswered}/{test.questions}</span>
                                                     </div>
                                                     <Progress value={test.progress} className="h-2" />
+                                                </div>
+                                            ) : (
+                                                <div className="mt-4 mb-3 text-sm text-muted-foreground">
+                                                    <span className="font-medium">&nbsp;</span>
                                                 </div>
                                             )}
                                         </CardContent>
@@ -449,7 +454,7 @@ export default function Tests() {
                                             <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-yellow-500 transition-colors" />
                                         </CardFooter>
                                     </Card>
-                                </Link>
+                                </div>
                             </motion.div>
                         ))}
                     </motion.div>
@@ -484,7 +489,7 @@ export default function Tests() {
                             </div>
                             <h3 className="mt-4 text-lg font-semibold">No tests in progress</h3>
                             <p className="mt-2 text-sm text-muted-foreground">
-                                {hasActiveFilters 
+                                {hasActiveFilters
                                     ? "Try adjusting your filters to see your in-progress tests."
                                     : "You haven't started any tests yet. Browse the available tests and begin your journey."
                                 }
@@ -518,8 +523,8 @@ export default function Tests() {
                             </div>
                             <h3 className="mt-4 text-lg font-semibold">No available tests found</h3>
                             <p className="mt-2 text-sm text-muted-foreground">
-                                {hasActiveFilters 
-                                    ? "Try adjusting your filters to see available tests." 
+                                {hasActiveFilters
+                                    ? "Try adjusting your filters to see available tests."
                                     : "Try adjusting your search or filter to find what you're looking for."}
                             </p>
                             {hasActiveFilters && (

@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { Clock, ArrowLeft, ArrowRight, Save, Flag, Check, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
+import { Clock, ArrowLeft, ArrowRight, Save, Flag, Check, CheckCircle, XCircle, AlertCircle, Maximize } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Card, CardContent } from '@/components/ui/card';
@@ -20,6 +20,23 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
+import { ScrollArea } from '@/components/ui/scroll-area';
+
+// Define browser-specific fullscreen API interfaces
+interface FullscreenElement extends HTMLDivElement {
+  webkitRequestFullscreen?: () => Promise<void>;
+  mozRequestFullScreen?: () => Promise<void>;
+  msRequestFullscreen?: () => Promise<void>;
+}
+
+interface FullscreenDocument extends Document {
+  webkitExitFullscreen?: () => Promise<void>;
+  mozCancelFullScreen?: () => Promise<void>;
+  msExitFullscreen?: () => Promise<void>;
+  webkitFullscreenElement?: Element | null;
+  mozFullScreenElement?: Element | null;
+  msFullscreenElement?: Element | null;
+}
 
 // Mock data for a test
 const mockTestData = {
@@ -155,10 +172,10 @@ const TimerDisplay = ({ timeLeft, progress }: TimerDisplayProps) => {
   // Convert seconds to minutes and seconds
   const minutes = Math.floor(timeLeft / 60);
   const seconds = timeLeft % 60;
-  
+
   // Format time as MM:SS
   const formattedTime = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-  
+
   return (
     <div className="relative mb-4">
       <div className="flex items-center justify-between mb-2">
@@ -175,8 +192,6 @@ const TimerDisplay = ({ timeLeft, progress }: TimerDisplayProps) => {
 
 export default function TestDetail() {
   const router = useRouter();
-  // const params = useParams();
-  // const testId = params.id as string;
   const { toast } = useToast();
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [userAnswers, setUserAnswers] = useState<UserAnswer[]>([]);
@@ -184,7 +199,80 @@ export default function TestDetail() {
   const [showSubmitDialog, setShowSubmitDialog] = useState(false);
   const [testSubmitted, setTestSubmitted] = useState(false);
   const [score, setScore] = useState(0);
-  
+  const [showFullscreenWarning, setShowFullscreenWarning] = useState(false);
+
+  const containerRef = useRef<HTMLDivElement>(null);
+  const portalContainerRef = useRef<HTMLDivElement>(null);
+  const searchParams = useSearchParams();
+
+  // Function to enter fullscreen mode
+  const enterFullscreen = useCallback(() => {
+    if (containerRef.current) {
+      const el = containerRef.current as FullscreenElement;
+
+      if (el.requestFullscreen) el.requestFullscreen();
+      else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
+      else if (el.msRequestFullscreen) el.msRequestFullscreen();
+      else if (el.mozRequestFullScreen) el.mozRequestFullScreen();
+    }
+  }, []);
+
+  // Function to exit fullscreen mode
+  const exitFullscreen = useCallback(() => {
+    const doc = document as FullscreenDocument;
+
+    if (doc.exitFullscreen) {
+      doc.exitFullscreen();
+    } else if (doc.webkitExitFullscreen) {
+      doc.webkitExitFullscreen();
+    } else if (doc.msExitFullscreen) {
+      doc.msExitFullscreen();
+    } else if (doc.mozCancelFullScreen) {
+      doc.mozCancelFullScreen();
+    }
+  }, []);
+
+  // Handle fullscreen changes
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      const doc = document as FullscreenDocument;
+
+      if (!doc.fullscreenElement &&
+        !doc.webkitFullscreenElement &&
+        !doc.msFullscreenElement &&
+        !doc.mozFullScreenElement &&
+        !testSubmitted) {
+        setShowFullscreenWarning(true);
+      }
+    };
+
+    // Add event listeners for all browser variants
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
+    document.addEventListener('mozfullscreenchange', handleFullscreenChange);
+    document.addEventListener('MSFullscreenChange', handleFullscreenChange);
+
+    return () => {
+      // Remove event listeners when component unmounts
+      document.removeEventListener('fullscreenchange', handleFullscreenChange);
+      document.removeEventListener('webkitfullscreenchange', handleFullscreenChange);
+      document.removeEventListener('mozfullscreenchange', handleFullscreenChange);
+      document.removeEventListener('MSFullscreenChange', handleFullscreenChange);
+    };
+  }, [testSubmitted]);
+
+  // Initial fullscreen
+  useEffect(() => {
+    const fullscreen = searchParams.get('fullscreen');
+
+    if (fullscreen === 'true' && containerRef.current) {
+      // Delay to ensure DOM is painted
+      setTimeout(() => {
+        enterFullscreen();
+      }, 100);
+    }
+  }, [searchParams, enterFullscreen]);
+
   // Initialize user answers
   useEffect(() => {
     const initialAnswers = mockTestData.questions.map(q => ({
@@ -204,23 +292,26 @@ export default function TestDetail() {
         correctAnswers++;
       }
     });
-    
+
     const finalScore = Math.round((correctAnswers / mockTestData.questions.length) * 100);
     setScore(finalScore);
     setTestSubmitted(true);
-    
+
+    // Exit fullscreen mode after test is submitted
+    exitFullscreen();
+
     toast("Test submitted successfully", {
       description: `Your score: ${finalScore}%`,
     });
-  }, [userAnswers, toast]);
-  
+  }, [userAnswers, toast, exitFullscreen]);
+
   // Timer
   useEffect(() => {
     if (timeLeft > 0 && !testSubmitted) {
       const timer = setTimeout(() => {
         setTimeLeft(timeLeft - 1);
       }, 1000);
-      
+
       // Clean up the timer
       return () => clearTimeout(timer);
     } else if (timeLeft === 0 && !testSubmitted) {
@@ -228,13 +319,13 @@ export default function TestDetail() {
       handleSubmitTest();
     }
   }, [timeLeft, testSubmitted, handleSubmitTest]);
-  
+
   // Current question
   const currentQuestion = mockTestData.questions[currentQuestionIndex];
-  
+
   // Calculate timer progress
   const timerProgress = (timeLeft / (mockTestData.duration * 60)) * 100;
-  
+
   // Handle answer selection
   const handleSelectAnswer = (answer: string) => {
     const updatedAnswers = [...userAnswers];
@@ -244,21 +335,21 @@ export default function TestDetail() {
     };
     setUserAnswers(updatedAnswers);
   };
-  
+
   // Navigate to next question
   const goToNextQuestion = () => {
     if (currentQuestionIndex < mockTestData.questions.length - 1) {
       setCurrentQuestionIndex(currentQuestionIndex + 1);
     }
   };
-  
+
   // Navigate to previous question
   const goToPreviousQuestion = () => {
     if (currentQuestionIndex > 0) {
       setCurrentQuestionIndex(currentQuestionIndex - 1);
     }
   };
-  
+
   // Toggle mark for review
   const toggleMarkForReview = () => {
     const updatedAnswers = [...userAnswers];
@@ -267,48 +358,52 @@ export default function TestDetail() {
       marked: !updatedAnswers[currentQuestionIndex].marked,
     };
     setUserAnswers(updatedAnswers);
-    
-    toast(updatedAnswers[currentQuestionIndex].marked 
-        ? "Question marked for review"
-        : "Mark removed", { 
-      description: updatedAnswers[currentQuestionIndex].marked 
+
+    toast(updatedAnswers[currentQuestionIndex].marked
+      ? "Question marked for review"
+      : "Mark removed", {
+      description: updatedAnswers[currentQuestionIndex].marked
         ? "You can review this question later"
         : "This question is no longer marked for review",
     });
   };
-  
+
   // Navigate to a specific question
   const goToQuestion = (index: number) => {
     setCurrentQuestionIndex(index);
   };
-  
+
   // Get button style based on question status
   const getQuestionButtonStyle = (index: number) => {
     const answer = userAnswers[index];
     if (!answer) return "bg-muted text-muted-foreground";
-    
+
     if (testSubmitted) {
       const isCorrect = answer.answer === mockTestData.questions[index].correctAnswer;
       if (isCorrect) return "bg-green-500 text-white";
       if (answer.answer) return "bg-red-500 text-white";
       return "bg-muted text-muted-foreground";
     }
-    
+
     if (answer.marked) return "bg-yellow-500 text-white";
     if (answer.answer) return "bg-blue-500 text-white";
     return "bg-muted text-muted-foreground";
   };
-  
+
   // Determine if the test can be submitted
   const canSubmit = userAnswers.some(answer => answer.answer !== null);
-  
+
   return (
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="h-full flex flex-col"
+      className={`h-full flex flex-col ${testSubmitted ? 'p-0' : 'p-12'} bg-background relative`}
+      ref={containerRef}
     >
+      {/* Portal container for dialogs to ensure they appear in fullscreen mode */}
+      <div id="fullscreen-portal-container" ref={portalContainerRef} className=""></div>
+
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold tracking-tight">{mockTestData.title}</h1>
         {!testSubmitted && (
@@ -321,14 +416,14 @@ export default function TestDetail() {
           </Button>
         )}
       </div>
-      
+
       {!testSubmitted ? (
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 h-full">
           {/* Question area - 3/4 width on desktop */}
           <Card className="lg:col-span-3 flex flex-col">
             <CardContent className="flex flex-col h-full pt-6">
               <TimerDisplay timeLeft={timeLeft} progress={timerProgress} />
-              
+
               <div className="mb-4">
                 <div className="flex items-center text-sm text-muted-foreground mb-2">
                   <span>Question {currentQuestionIndex + 1} of {mockTestData.questions.length}</span>
@@ -336,7 +431,7 @@ export default function TestDetail() {
                 <div className="text-xl font-medium mb-8">
                   {currentQuestion.text}
                 </div>
-                
+
                 <RadioGroup
                   value={userAnswers[currentQuestionIndex]?.answer || ""}
                   onValueChange={handleSelectAnswer}
@@ -347,9 +442,9 @@ export default function TestDetail() {
                       key={option.id}
                       className="flex items-center space-x-3 border rounded-lg p-4 transition-colors hover:bg-muted/50"
                     >
-                      <RadioGroupItem 
-                        value={option.id} 
-                        id={`option-${option.id}`} 
+                      <RadioGroupItem
+                        value={option.id}
+                        id={`option-${option.id}`}
                         className="text-yellow-500 border-yellow-500"
                       />
                       <Label htmlFor={`option-${option.id}`} className="flex-1 cursor-pointer">
@@ -359,7 +454,7 @@ export default function TestDetail() {
                   ))}
                 </RadioGroup>
               </div>
-              
+
               <div className="flex justify-between items-center mt-auto pt-6 border-t">
                 <Button
                   variant="outline"
@@ -369,7 +464,7 @@ export default function TestDetail() {
                   <ArrowLeft className="h-4 w-4 mr-2" />
                   Previous
                 </Button>
-                
+
                 <div className="flex space-x-2">
                   <Button
                     variant="outline"
@@ -379,24 +474,24 @@ export default function TestDetail() {
                     <Flag className={`h-4 w-4 mr-2 ${userAnswers[currentQuestionIndex]?.marked ? 'text-yellow-500' : ''}`} />
                     {userAnswers[currentQuestionIndex]?.marked ? 'Unmark' : 'Mark'}
                   </Button>
-                  
+
                   <Button
                     variant="outline"
-                    onClick={() => {/* Save functionality */}}
+                    onClick={() => {/* Save functionality */ }}
                     className="flex items-center"
                   >
                     <Save className="h-4 w-4 mr-2" />
                     Save
                   </Button>
                 </div>
-                
+
                 {currentQuestionIndex < mockTestData.questions.length - 1 ? (
                   <Button onClick={goToNextQuestion}>
                     Next
                     <ArrowRight className="h-4 w-4 ml-2" />
                   </Button>
                 ) : (
-                  <Button 
+                  <Button
                     className="bg-yellow-500 hover:bg-yellow-600"
                     onClick={() => setShowSubmitDialog(true)}
                     disabled={!canSubmit}
@@ -408,7 +503,7 @@ export default function TestDetail() {
               </div>
             </CardContent>
           </Card>
-          
+
           {/* Question navigation - 1/4 width on desktop */}
           <div className="lg:col-span-1">
             <Card>
@@ -418,18 +513,17 @@ export default function TestDetail() {
                   {mockTestData.questions.map((_, index) => (
                     <button
                       key={index}
-                      className={`h-10 w-10 rounded flex items-center justify-center text-sm font-medium transition-colors ${
-                        index === currentQuestionIndex 
-                          ? 'ring-2 ring-yellow-500' 
-                          : ''
-                      } ${getQuestionButtonStyle(index)}`}
+                      className={`h-10 w-10 rounded flex items-center justify-center text-sm font-medium transition-colors ${index === currentQuestionIndex
+                        ? 'ring-2 ring-yellow-500'
+                        : ''
+                        } ${getQuestionButtonStyle(index)}`}
                       onClick={() => goToQuestion(index)}
                     >
                       {index + 1}
                     </button>
                   ))}
                 </div>
-                
+
                 <div className="space-y-2 mt-6">
                   <div className="flex items-center text-sm">
                     <span className="h-4 w-4 rounded-full bg-blue-500 mr-2"></span>
@@ -444,7 +538,7 @@ export default function TestDetail() {
                     <span>Marked for review</span>
                   </div>
                 </div>
-                
+
                 <div className="mt-6 pt-6 border-t">
                   <div className="text-sm text-muted-foreground mb-2">
                     <span className="font-medium">Summary</span>
@@ -467,8 +561,8 @@ export default function TestDetail() {
                       <span>{userAnswers.filter(a => a.marked).length}</span>
                     </div>
                   </div>
-                  
-                  <Button 
+
+                  <Button
                     className="w-full mt-6 bg-yellow-500 hover:bg-yellow-600"
                     onClick={() => setShowSubmitDialog(true)}
                     disabled={!canSubmit}
@@ -488,7 +582,7 @@ export default function TestDetail() {
           className="grid grid-cols-1 md:grid-cols-3 gap-6"
         >
           {/* Score summary */}
-          <Card className="md:col-span-1">
+          <Card className="md:col-span-1 max-h-[80vh]">
             <CardContent className="pt-6">
               <div className="text-center">
                 <div className="inline-flex h-32 w-32 items-center justify-center rounded-full bg-muted mb-4">
@@ -520,7 +614,7 @@ export default function TestDetail() {
                     </span>
                   </div>
                 </div>
-                
+
                 <div className="space-y-2">
                   <Button
                     className="w-full bg-yellow-500 hover:bg-yellow-600"
@@ -539,91 +633,91 @@ export default function TestDetail() {
               </div>
             </CardContent>
           </Card>
-          
+
           {/* Questions review */}
-          <Card className="md:col-span-2">
-            <CardContent className="pt-6">
-              <h3 className="font-bold text-lg mb-4">Review Your Answers</h3>
-              <div className="space-y-6">
-                {mockTestData.questions.map((question, index) => {
-                  const userAnswer = userAnswers[index]?.answer;
-                  const isCorrect = userAnswer === question.correctAnswer;
-                  
-                  return (
-                    <div key={question.id} className="border rounded-lg p-4">
-                      <div className="flex justify-between items-start mb-2">
-                        <div className="flex items-center">
-                          <span className="font-medium">Question {index + 1}</span>
-                          {userAnswer && (
-                            <span className="ml-2">
-                              {isCorrect ? (
-                                <CheckCircle className="h-4 w-4 text-green-500" />
-                              ) : (
-                                <XCircle className="h-4 w-4 text-red-500" />
-                              )}
-                            </span>
-                          )}
-                          {!userAnswer && (
-                            <span className="ml-2">
-                              <AlertCircle className="h-4 w-4 text-yellow-500" />
-                            </span>
-                          )}
+          <ScrollArea className='md:col-span-2 border rounded-xl max-h-[80vh]'>
+            <Card>
+              <CardContent>
+                <h3 className="font-bold text-lg mb-4">Review Your Answers</h3>
+                <div className="space-y-6">
+                  {mockTestData.questions.map((question, index) => {
+                    const userAnswer = userAnswers[index]?.answer;
+                    const isCorrect = userAnswer === question.correctAnswer;
+
+                    return (
+                      <div key={question.id} className="border rounded-lg p-4">
+                        <div className="flex justify-between items-start mb-2">
+                          <div className="flex items-center">
+                            <span className="font-medium">Question {index + 1}</span>
+                            {userAnswer && (
+                              <span className="ml-2">
+                                {isCorrect ? (
+                                  <CheckCircle className="h-4 w-4 text-green-500" />
+                                ) : (
+                                  <XCircle className="h-4 w-4 text-red-500" />
+                                )}
+                              </span>
+                            )}
+                            {!userAnswer && (
+                              <span className="ml-2">
+                                <AlertCircle className="h-4 w-4 text-yellow-500" />
+                              </span>
+                            )}
+                          </div>
+                          <span className={`text-sm font-medium ${isCorrect ? 'text-green-500' : userAnswer ? 'text-red-500' : 'text-yellow-500'
+                            }`}>
+                            {isCorrect ? '+1 point' : userAnswer ? '0 points' : 'Not answered'}
+                          </span>
                         </div>
-                        <span className={`text-sm font-medium ${
-                          isCorrect ? 'text-green-500' : userAnswer ? 'text-red-500' : 'text-yellow-500'
-                        }`}>
-                          {isCorrect ? '+1 point' : userAnswer ? '0 points' : 'Not answered'}
-                        </span>
-                      </div>
-                      <p className="mb-4">{question.text}</p>
-                      
-                      <div className="space-y-2">
-                        {question.options.map((option) => (
-                          <div 
-                            key={option.id}
-                            className={`p-3 rounded-md text-sm ${
-                              option.id === question.correctAnswer
+                        <p className="mb-4">{question.text}</p>
+
+                        <div className="space-y-2">
+                          {question.options.map((option) => (
+                            <div
+                              key={option.id}
+                              className={`p-3 rounded-md text-sm ${option.id === question.correctAnswer
                                 ? 'bg-green-500/10 border border-green-500/20'
                                 : option.id === userAnswer
                                   ? 'bg-red-500/10 border border-red-500/20'
                                   : 'bg-muted'
-                            }`}
-                          >
-                            <div className="flex items-start">
-                              <div className="mr-2">
-                                {option.id === question.correctAnswer ? (
-                                  <CheckCircle className="h-4 w-4 text-green-500" />
-                                ) : option.id === userAnswer ? (
-                                  <XCircle className="h-4 w-4 text-red-500" />
-                                ) : (
-                                  <span className="h-4 w-4 block"></span>
-                                )}
+                                }`}
+                            >
+                              <div className="flex items-start">
+                                <div className="mr-2">
+                                  {option.id === question.correctAnswer ? (
+                                    <CheckCircle className="h-4 w-4 text-green-500" />
+                                  ) : option.id === userAnswer ? (
+                                    <XCircle className="h-4 w-4 text-red-500" />
+                                  ) : (
+                                    <span className="h-4 w-4 block"></span>
+                                  )}
+                                </div>
+                                <span>{option.text}</span>
                               </div>
-                              <span>{option.text}</span>
                             </div>
-                          </div>
-                        ))}
-                      </div>
-                      
-                      {userAnswer && userAnswer !== question.correctAnswer && (
-                        <div className="mt-4 text-sm">
-                          <p className="font-medium text-muted-foreground">
-                            Correct answer: Option {question.correctAnswer.toUpperCase()}
-                          </p>
+                          ))}
                         </div>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            </CardContent>
-          </Card>
+
+                        {userAnswer && userAnswer !== question.correctAnswer && (
+                          <div className="mt-4 text-sm">
+                            <p className="font-medium text-muted-foreground">
+                              Correct answer: Option {question.correctAnswer.toUpperCase()}
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </CardContent>
+            </Card>
+          </ScrollArea>
         </motion.div>
       )}
-      
+
       {/* Confirm submission dialog */}
       <AlertDialog open={showSubmitDialog} onOpenChange={setShowSubmitDialog}>
-        <AlertDialogContent>
+        <AlertDialogContent container={portalContainerRef.current ?? undefined}>
           <AlertDialogHeader>
             <AlertDialogTitle>Submit Test?</AlertDialogTitle>
             <AlertDialogDescription>
@@ -648,11 +742,52 @@ export default function TestDetail() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction 
+            <AlertDialogAction
               className="bg-yellow-500 hover:bg-yellow-600"
               onClick={handleSubmitTest}
             >
               Submit Test
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Fullscreen warning dialog - non-cancellable */}
+      <AlertDialog
+        open={showFullscreenWarning}
+        onOpenChange={(open) => {
+          // We'll use a more straightforward approach: when the overlay is clicked, 
+          // just enter fullscreen again instead of forcing the dialog to stay open
+          if (!open) {
+            setShowFullscreenWarning(false);
+            enterFullscreen();
+          }
+        }}
+      >
+        <AlertDialogContent
+          container={portalContainerRef.current ?? undefined}
+          onEscapeKeyDown={(e) => {
+            // Prevent escape key from closing the dialog without re-entering fullscreen
+            e.preventDefault();
+          }}
+        >
+          <AlertDialogHeader>
+            <AlertDialogTitle>Fullscreen Required</AlertDialogTitle>
+            <AlertDialogDescription>
+              To ensure test integrity, you must remain in fullscreen mode throughout the entire test.
+              Please click the button below to return to fullscreen mode and continue your test.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogAction
+              className="bg-yellow-500 hover:bg-yellow-600 w-full"
+              onClick={() => {
+                setShowFullscreenWarning(false);
+                enterFullscreen();
+              }}
+            >
+              <Maximize className="h-4 w-4 mr-2" />
+              Return to Fullscreen
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

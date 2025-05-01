@@ -22,9 +22,9 @@ export default function Settings() {
   
   // User profile state
   const [userProfile, setUserProfile] = useState({
-    name: "John Doe",
-    email: "john.doe@example.com",
-    avatar: "https://i.pravatar.cc/150?img=68",
+    name: "Harshith Doddipalli",
+    email: "harshith.doddipalli@outlook.com",
+    avatar: "/avatar.jpg",
   });
   
   // Notification settings state
