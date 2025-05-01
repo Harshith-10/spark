@@ -81,7 +81,7 @@ export default function Settings() {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.3 }}
-      className="space-y-8"
+      className="space-y-4"
     >
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Settings</h1>
@@ -91,7 +91,7 @@ export default function Settings() {
       </div>
       
       <Tabs defaultValue="profile" className="w-full">
-        <TabsList className="mb-8">
+        <TabsList className="mb-3">
           <TabsTrigger value="profile">Profile</TabsTrigger>
           <TabsTrigger value="notifications">Notifications</TabsTrigger>
           <TabsTrigger value="appearance">Appearance</TabsTrigger>
