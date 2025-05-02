@@ -10,7 +10,7 @@ import {Input} from "@/components/ui/input";
 import {Label} from "@/components/ui/label";
 import {AlertCircle} from 'lucide-react';
 
-const LoginForm = ()=> {
+export default function LoginForm() {
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -114,5 +114,3 @@ const LoginForm = ()=> {
     </>
   );
 }
-
-export default LoginForm;

@@ -1,8 +1,16 @@
-// This file previously contained Next-Auth configuration
-// Now it's a simple placeholder since we've removed Next-Auth
+import Google from "next-auth/providers/google"
+import NextAuth from "next-auth";
 
-export const isAuthenticated = () => {
-  // In a real application, you would check for authentication here
-  // For now, we're allowing all access
-  return true;
-};
+export const { handlers, auth, signIn, signOut } = NextAuth({
+  providers: [
+    Google({
+      authorization: {
+        params: {
+          prompt: "consent",
+          access_type: "offline",
+          response_type: "code",
+        },
+      },
+    }),
+  ],
+})
