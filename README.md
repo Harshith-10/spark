@@ -1,7 +1,7 @@
 # Spark: AI-Powered Learning Assistant
 
 <div align="center">
-  <img src="/public/favicon.png" alt="Spark Logo" width="120" />
+  <img src="public/favicon.png" alt="Spark Logo" width="120" />
   <p><em>Transform your learning experience with advanced AI interactions</em></p>
 </div>
 
