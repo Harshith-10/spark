@@ -1,37 +1,36 @@
-"use client";
+// src/components/google-signin-button.tsx
+'use client';
 
-import { Button } from "@/components/ui/button";
+import {Button} from "@/components/ui/button";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
-import React from "react";
+import {useTransition} from "react";
+import {googleSignIn} from "@/app/actions/auth";
 
 interface GoogleSignInButtonProps {
   className?: string;
 }
 
-export function GoogleSignInButton({ className }: GoogleSignInButtonProps) {
-  const router = useRouter();
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    router.push("/dashboard");
-  }
+export function GoogleSignInButton({className}: GoogleSignInButtonProps) {
+  const [isPending, startTransition] = useTransition();
 
   return (
-    <form onSubmit={handleSubmit}>
-      <Button
-        variant="outline"
-        className={`w-full py-4 flex items-center gap-2 ${className}`}
-        type="submit"
-      >
+    <Button
+      variant="outline"
+      className={`w-full flex items-center gap-2 ${className}`}
+      onClick={() => startTransition(() => googleSignIn())}
+      disabled={isPending}
+    >
+      {isPending ? (
+        <span className="loading loading-spinner loading-sm"></span>
+      ) : (
         <Image
           src="/google-icon.svg"
           alt="Google logo"
-          width={24}
-          height={24}
+          width={18}
+          height={18}
         />
-        <span>Sign in with Google</span>
-      </Button>
-    </form>
+      )}
+      <span>{isPending ? "Signing in..." : "Sign in with Google"}</span>
+    </Button>
   );
 }
