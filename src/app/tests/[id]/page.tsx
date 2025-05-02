@@ -307,7 +307,7 @@ export default function TestDetail() {
     toast("Test submitted successfully", {
       description: `Your score: ${finalScore}%`,
     });
-  }, [userAnswers, toast, exitFullscreen]);
+  }, [userAnswers, exitFullscreen]);
 
   // Timer
   useEffect(() => {

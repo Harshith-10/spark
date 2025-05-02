@@ -19,15 +19,25 @@ export function useChatMessages() {
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
 
-  // Auto-expand thinking sections when they appear
+  // Auto-expand thinking sections when they appear and collapse when thinking is complete
   useEffect(() => {
     messages.forEach(message => {
-      if (message.isThinking && message.thought) {
-        setOpenCollapseIds(prev => {
-          const newSet = new Set(prev);
-          newSet.add(message.id);
-          return newSet;
-        });
+      if (message.sender === 'ai') {
+        if (message.isThinking && message.thought) {
+          // Open the collapse when the AI is thinking
+          setOpenCollapseIds(prev => {
+            const newSet = new Set(prev);
+            newSet.add(message.id);
+            return newSet;
+          });
+        } else if (message.thought && !message.isThinking) {
+          // Close the collapse when thinking is complete
+          setOpenCollapseIds(prev => {
+            const newSet = new Set(prev);
+            newSet.delete(message.id);
+            return newSet;
+          });
+        }
       }
     });
   }, [messages]);

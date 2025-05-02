@@ -32,16 +32,10 @@ export default function Login() {
     setIsLoading(true);
     setError('');
     
-    // Simulate API call
+    // Simulate API call - in a real application you would implement actual authentication here
     setTimeout(() => {
-      // Demo login - in a real app, you'd validate against an API
-      if (email === 'demo@example.com' && password === 'password') {
-        // localStorage.setItem('spark-auth', 'true'); // Auth state should be managed server-side or via context/state management
-        router.push('/dashboard'); // Redirect after successful login
-      } else {
-        setError('Invalid email or password');
-        setIsLoading(false);
-      }
+      // Simply redirect to dashboard - no actual authentication in this simplified version
+      router.push('/dashboard');
     }, 500);
   };
 
@@ -75,14 +69,14 @@ export default function Login() {
             placeholder="Enter your email" 
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            required // Added required attribute
+            required
           />
         </div>
         <div className="space-y-2">
           <div className="flex items-center justify-between">
             <Label htmlFor="password">Password</Label>
             <Link 
-              href="#" // Consider implementing a password reset flow
+              href="#" 
               className="text-sm text-muted-foreground hover:text-foreground transition-colors"
             >
               Forgot password?
@@ -94,7 +88,7 @@ export default function Login() {
             placeholder="Enter your password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            required // Added required attribute
+            required
           />
         </div>
         
@@ -144,12 +138,10 @@ export default function Login() {
         </Link>
       </div>
 
-
-      {/* Demo account notice */}
+      {/* Demo account notice - no longer needed since all logins redirect to dashboard */}
       <div className="mt-6 p-3 border rounded-md text-sm text-muted-foreground bg-muted/50">
-        <p className="font-medium mb-1">Demo Account</p>
-        <p>Email: demo@example.com</p>
-        <p>Password: password</p>
+        <p className="font-medium mb-1">Note</p>
+        <p>All login attempts will redirect to the dashboard in this simplified version.</p>
       </div>
     </motion.div>
   );

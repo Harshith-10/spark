@@ -65,11 +65,10 @@ export default function Register() {
     setIsLoading(true);
     setError('');
 
-    // Simulate API call
+    // Simulate API call - in a real application you would implement actual registration here
     setTimeout(() => {
-      // Demo registration - in a real app, you'd create account via API
-      // localStorage.setItem('spark-auth', 'true'); // Auth state should be managed server-side or via context/state management
-      router.push('/dashboard'); // Redirect after successful registration
+      // Simply redirect to dashboard - no actual authentication in this simplified version
+      router.push('/dashboard');
     }, 500);
   };
 
