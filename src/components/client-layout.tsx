@@ -1,15 +1,15 @@
 "use client";
 
-import React, {useState, useEffect} from "react";
-import {usePathname} from "next/navigation";
-import {useMediaQuery} from "@/hooks/use-media-query";
+import React, { useState, useEffect } from "react";
+import { usePathname } from "next/navigation";
+import { useMediaQuery } from "@/hooks/use-media-query";
 import Header from "@/components/header";
 import Sidebar from "@/components/sidebar";
-import {motion} from "framer-motion";
+import { motion } from "framer-motion";
 
 export default function ClientLayout({
-                                       children,
-                                     }: {
+  children,
+}: {
   children: React.ReactNode;
 }) {
   const [isOpen, setIsOpen] = useState(false);
@@ -30,7 +30,10 @@ export default function ClientLayout({
     }
   }, [pathname, isMobile]);
 
-  const hideLayout = pathname === '/' || pathname === '/login' || pathname === '/register';
+  const hideLayout = pathname === '/' || 
+                     pathname === '/login' || 
+                     pathname === '/register' || 
+                     pathname === '/reset-password';
 
   if (hideLayout) {
     return <>{children}</>;
@@ -42,13 +45,10 @@ export default function ClientLayout({
       <div className="flex">
         <Sidebar isOpen={isOpen}/>
         <motion.main
-          className={`flex-1 p-4 md:p-6 pt-4 transition-all duration-300 ${
-            isOpen ? 'md:ml-64' : ''
-          }`}
-          initial={{opacity: 0, y: 10}}
-          animate={{opacity: 1, y: 0}}
-          exit={{opacity: 0, y: 10}}
-          transition={{duration: 0.2}}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.3 }}
+          className={`flex-1 p-4 md:p-6 lg:p-8 transition-all duration-200 ${isOpen ? "ml-64" : "ml-0"}`}
         >
           {children}
         </motion.main>

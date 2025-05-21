@@ -1,5 +1,7 @@
-import { useState, useEffect } from 'react';
+'use client';
+
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { SidebarCloseIcon, SidebarOpenIcon, BellIcon, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -13,29 +15,35 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { SignOutButton } from './sign-out-button';
+import { useAuth } from '@/providers/auth-provider';
 
 interface HeaderProps {
   toggleSidebar: () => void;
   isSidebarOpen: boolean;
 }
 
-const Header = ({ toggleSidebar, isSidebarOpen }: HeaderProps) => {
-  const [scrolled, setScrolled] = useState(false);
-
-  useEffect(() => {
-    const handleScroll = () => {
-      setScrolled(window.scrollY > 10);
-    };
-
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
+export default function Header({ toggleSidebar, isSidebarOpen }: HeaderProps) {
+  const router = useRouter();
+  const { user, loading } = useAuth();
+  
+  // Get user metadata from Supabase user
+  const userMetadata = user?.user_metadata || {};
+  
+  // Display name fallback logic
+  const displayName = userMetadata?.full_name || user?.email?.split('@')[0] || 'User';
+  
+  // Get initials for the avatar fallback
+  const getInitials = (name: string) => {
+    return name?.split(' ')
+      .map(part => part?.[0])
+      .join('')
+      .toUpperCase() || user?.email?.[0]?.toUpperCase() || 'U';
+  };
+  
   return (
     <motion.header
-      className={`sticky top-0 z-50 py-3 px-4 md:px-6 transition-all duration-200 ${
-        scrolled ? 'bg-background/90 backdrop-blur-sm shadow-sm' : 'bg-background'
-      }`}
+      className={`sticky top-0 z-50 py-3 px-4 md:px-6 transition-all duration-200`}
       initial={{ y: -100 }}
       animate={{ y: 0 }}
       transition={{ duration: 0.3 }}
@@ -59,7 +67,7 @@ const Header = ({ toggleSidebar, isSidebarOpen }: HeaderProps) => {
 
         <div className="flex items-center space-x-3">
           <ModeToggle />
-          
+
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="icon" className="relative">
@@ -84,35 +92,45 @@ const Header = ({ toggleSidebar, isSidebarOpen }: HeaderProps) => {
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
-          
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="relative h-8 w-8 rounded-full">
-                <Avatar className="h-8 w-8">
-                  <AvatarImage src="/images/avatar3.jpg" alt="User" />
-                  <AvatarFallback>HD</AvatarFallback>
-                </Avatar>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuLabel>My Account</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem asChild>
-                <Link href="/settings">Settings</Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <Link href="/dashboard">Dashboard</Link>
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem asChild>
-                <Link href="/">Sign out</Link>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+
+          {user && !loading ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+                  <Avatar className="h-8 w-8">
+                    <AvatarImage 
+                      src={userMetadata?.avatar_url || ''} 
+                      alt={displayName} 
+                    />
+                    <AvatarFallback>
+                      {getInitials(displayName)}
+                    </AvatarFallback>
+                  </Avatar>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuLabel>
+                  {displayName}
+                  <p className="text-xs text-muted-foreground">{user.email}</p>
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem asChild>
+                  <Link href="/settings">Settings</Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/dashboard">Dashboard</Link>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <SignOutButton />
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : (
+            <Button variant="ghost" size="sm" onClick={() => router.push('/login')}>
+              Sign In
+            </Button>
+          )}
         </div>
       </div>
     </motion.header>
   );
-};
-
-export default Header;
+}

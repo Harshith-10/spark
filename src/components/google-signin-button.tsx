@@ -1,36 +1,57 @@
 // src/components/google-signin-button.tsx
 'use client';
 
-import {Button} from "@/components/ui/button";
+import React, { useState } from "react";
+import { Button } from "@/components/ui/button";
 import Image from "next/image";
-import {useTransition} from "react";
-import {googleSignIn} from "@/app/actions/auth";
+import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
+import { toast } from "sonner";
+import { useSearchParams } from "next/navigation";
 
-interface GoogleSignInButtonProps {
-  className?: string;
-}
+export function GoogleSignInButton() {
+  const searchParams = useSearchParams();
+  const redirect = searchParams.get('redirect') || '/dashboard';
+  const [isLoading, setIsLoading] = useState(false);
+  const supabase = createClientComponentClient();
 
-export function GoogleSignInButton({className}: GoogleSignInButtonProps) {
-  const [isPending, startTransition] = useTransition();
+  const handleGoogleSignIn = async () => {
+    setIsLoading(true);
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback?redirect=${redirect}`
+        }
+      });
+
+      if (error) {
+        toast.error(error.message);
+      }
+    } catch (error) {
+      console.error("Google Sign In error:", error);
+      toast.error("Failed to sign in with Google");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <Button
+      onClick={handleGoogleSignIn}
       variant="outline"
-      className={`w-full flex items-center gap-2 ${className}`}
-      onClick={() => startTransition(() => googleSignIn())}
-      disabled={isPending}
+      className="w-full"
+      disabled={isLoading}
     >
-      {isPending ? (
-        <span className="loading loading-spinner loading-sm"></span>
-      ) : (
-        <Image
-          src="/google-icon.svg"
-          alt="Google logo"
-          width={18}
-          height={18}
+      {!isLoading && (
+        <Image 
+          src="/google-icon.svg" 
+          width={20} 
+          height={20} 
+          alt="Google Logo" 
+          className="mr-2" 
         />
       )}
-      <span>{isPending ? "Signing in..." : "Sign in with Google"}</span>
+      {isLoading ? "Signing in..." : "Sign in with Google"}
     </Button>
   );
 }

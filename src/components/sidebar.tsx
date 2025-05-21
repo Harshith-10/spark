@@ -8,7 +8,8 @@ import {
   Book, 
   MessageSquare, 
   Settings,
-  ChevronRight
+  ChevronRight,
+  Code
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -65,6 +66,11 @@ const Sidebar = ({ isOpen }: SidebarProps) => {
       icon: <Book className="h-5 w-5" />,
       label: "Tests",
       path: "/tests",
+    },
+    {
+      icon: <Code className="h-5 w-5" />,
+      label: "Playground",
+      path: "/playground",
     },
     {
       icon: <MessageSquare className="h-5 w-5" />,

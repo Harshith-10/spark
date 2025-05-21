@@ -1,9 +1,10 @@
-import {Metadata} from "next";
-import {Geist, Geist_Mono} from "next/font/google";
+import { Metadata } from "next";
+import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import {Toaster} from "@/components/ui/sonner";
-import {ThemeProvider} from "@/components/theme-provider";
+import { Toaster } from "@/components/ui/sonner";
+import { ThemeProvider } from "@/components/theme-provider";
 import ClientLayout from "@/components/client-layout";
+import { AuthProvider } from "@/providers/auth-provider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -34,10 +35,12 @@ export default function RootLayout({
           defaultTheme="system"
           storageKey="spark-theme"
         >
-          <ClientLayout>
-            {children}
-          </ClientLayout>
-          <Toaster/>
+          <AuthProvider>
+            <ClientLayout>
+              {children}
+            </ClientLayout>
+            <Toaster />
+          </AuthProvider>
         </ThemeProvider>
       </body>
     </html>

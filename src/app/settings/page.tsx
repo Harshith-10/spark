@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Save, Moon, Monitor, SunMedium, Bell } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -15,16 +15,37 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useTheme } from '@/components/theme-provider';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useAuth } from '@/providers/auth-provider';
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 
 export default function Settings() {
   const { theme, setTheme } = useTheme();
-
+  const { user, loading } = useAuth();
+  const supabase = createClientComponentClient();
+  
   // User profile state
   const [userProfile, setUserProfile] = useState({
-    name: "Yechika",
-    email: "chika.h@gmail.com",
-    avatar: "/images/avatar3.jpg",
+    fullName: '',
+    email: '',
+    avatarUrl: '',
   });
+  
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+
+  // Load user profile from Supabase when component mounts
+  useEffect(() => {
+    if (user) {
+      const metadata = user.user_metadata || {};
+      setUserProfile({
+        fullName: metadata.full_name || '',
+        email: user.email || '',
+        avatarUrl: metadata.avatar_url || '',
+      });
+    }
+  }, [user]);
 
   // Notification settings state
   const [notificationSettings, setNotificationSettings] = useState({
@@ -47,11 +68,119 @@ export default function Settings() {
   });
 
   // Handle profile form submit
-  const handleProfileSubmit = (e: React.FormEvent) => {
+  const handleProfileSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    toast("Profile updated", {
-      description: "Your profile information has been updated successfully.",
-    });
+    setIsUpdating(true);
+    
+    try {
+      // Update user metadata in Supabase
+      const { error } = await supabase.auth.updateUser({
+        data: {
+          full_name: userProfile.fullName,
+          avatar_url: userProfile.avatarUrl,
+        }
+      });
+      
+      if (error) {
+        toast.error("Failed to update profile", {
+          description: error.message,
+        });
+        return;
+      }
+      
+      // If password fields are filled, update password
+      if (newPassword && currentPassword) {
+        if (newPassword !== confirmPassword) {
+          toast.error("Passwords don't match", {
+            description: "New password and confirmation must match.",
+          });
+          return;
+        }
+        
+        const { error: passwordError } = await supabase.auth.updateUser({
+          password: newPassword
+        });
+        
+        if (passwordError) {
+          toast.error("Failed to update password", {
+            description: passwordError.message,
+          });
+          return;
+        }
+        
+        // Clear password fields
+        setCurrentPassword('');
+        setNewPassword('');
+        setConfirmPassword('');
+        
+        toast.success("Password updated successfully");
+      }
+      
+      toast.success("Profile updated", {
+        description: "Your profile information has been updated successfully.",
+      });
+    } catch (error) {
+      console.error("Error updating profile:", error);
+      toast.error("An error occurred", {
+        description: "There was a problem updating your profile.",
+      });
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
+  // File upload handler for avatar
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+    
+    const file = files[0];
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${user?.id}-${Math.random().toString(36).substring(2)}.${fileExt}`;
+    
+    setIsUpdating(true);
+    
+    try {
+      // Upload file to Supabase Storage
+      const { error: uploadError } = await supabase
+        .storage
+        .from('avatars')
+        .upload(fileName, file, { upsert: true });
+      
+      if (uploadError) {
+        throw uploadError;
+      }
+      
+      // Get public URL for the uploaded file
+      const { data: { publicUrl } } = supabase
+        .storage
+        .from('avatars')
+        .getPublicUrl(fileName);
+      
+      // Update user profile with new avatar URL
+      setUserProfile({
+        ...userProfile,
+        avatarUrl: publicUrl
+      });
+      
+      // Update user metadata in Supabase with the new avatar URL
+      const { error: updateError } = await supabase.auth.updateUser({
+        data: {
+          avatar_url: publicUrl
+        }
+      });
+      
+      if (updateError) {
+        throw updateError;
+      }
+      
+      toast.success("Avatar uploaded successfully");
+    } catch (error) {
+      console.error("Error uploading avatar:", error);
+      toast.error("Failed to upload avatar");
+    } finally {
+      setIsUpdating(false);
+    }
   };
 
   // Save notification settings
@@ -74,6 +203,27 @@ export default function Settings() {
       description: "Your test settings have been saved.",
     });
   };
+
+  // Get initials for avatar fallback
+  const getInitials = (name: string) => {
+    if (!name) return 'U';
+    return name
+      .split(' ')
+      .map(part => part[0])
+      .join('')
+      .toUpperCase();
+  };
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-full">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-yellow-500 mx-auto"></div>
+          <p className="mt-2 text-sm text-muted-foreground">Loading settings...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <motion.div
@@ -111,21 +261,36 @@ export default function Settings() {
                 <div className="flex flex-col md:flex-row items-start gap-6">
                   <div className="flex flex-col items-center space-y-3">
                     <Avatar className="h-24 w-24">
-                      <AvatarImage src={userProfile.avatar} alt={userProfile.name} />
-                      <AvatarFallback>{userProfile.name.substring(0, 2)}</AvatarFallback>
+                      <AvatarImage src={userProfile.avatarUrl} alt={userProfile.fullName} />
+                      <AvatarFallback>{getInitials(userProfile.fullName)}</AvatarFallback>
                     </Avatar>
-                    <Button size="sm" variant="outline">
-                      Change Avatar
-                    </Button>
+                    <div className="relative">
+                      <input
+                        type="file"
+                        id="avatar-upload"
+                        className="hidden"
+                        accept="image/*"
+                        onChange={handleAvatarUpload}
+                      />
+                      <Button 
+                        size="sm" 
+                        variant="outline" 
+                        onClick={() => document.getElementById('avatar-upload')?.click()}
+                        disabled={isUpdating}
+                      >
+                        Change Avatar
+                      </Button>
+                    </div>
                   </div>
 
                   <div className="space-y-4 flex-1">
                     <div className="grid gap-2">
-                      <Label htmlFor="name">Full Name</Label>
+                      <Label htmlFor="fullName">Full Name</Label>
                       <Input
-                        id="name"
-                        value={userProfile.name}
-                        onChange={(e) => setUserProfile({ ...userProfile, name: e.target.value })}
+                        id="fullName"
+                        value={userProfile.fullName}
+                        onChange={(e) => setUserProfile({ ...userProfile, fullName: e.target.value })}
+                        disabled={isUpdating}
                       />
                     </div>
 
@@ -135,8 +300,10 @@ export default function Settings() {
                         id="email"
                         type="email"
                         value={userProfile.email}
-                        onChange={(e) => setUserProfile({ ...userProfile, email: e.target.value })}
+                        disabled={true}
+                        className="bg-muted"
                       />
+                      <p className="text-xs text-muted-foreground">Your email cannot be changed directly. Please contact support if you need to update it.</p>
                     </div>
                   </div>
                 </div>
@@ -148,24 +315,55 @@ export default function Settings() {
 
                   <div className="grid gap-2">
                     <Label htmlFor="current-password">Current Password</Label>
-                    <Input id="current-password" type="password" />
+                    <Input 
+                      id="current-password" 
+                      type="password" 
+                      value={currentPassword}
+                      onChange={(e) => setCurrentPassword(e.target.value)}
+                      disabled={isUpdating}
+                    />
                   </div>
 
                   <div className="grid gap-2">
                     <Label htmlFor="new-password">New Password</Label>
-                    <Input id="new-password" type="password" />
+                    <Input 
+                      id="new-password" 
+                      type="password" 
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                      disabled={isUpdating}
+                    />
                   </div>
 
                   <div className="grid gap-2">
                     <Label htmlFor="confirm-password">Confirm New Password</Label>
-                    <Input id="confirm-password" type="password" />
+                    <Input 
+                      id="confirm-password" 
+                      type="password" 
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      disabled={isUpdating}
+                    />
                   </div>
                 </div>
               </CardContent>
               <CardFooter className="flex justify-end">
-                <Button type="submit" className="bg-yellow-500 hover:bg-yellow-600">
-                  <Save className="h-4 w-4 mr-2" />
-                  Save Changes
+                <Button 
+                  type="submit" 
+                  className="bg-yellow-500 hover:bg-yellow-600"
+                  disabled={isUpdating}
+                >
+                  {isUpdating ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                      Saving...
+                    </>
+                  ) : (
+                    <>
+                      <Save className="h-4 w-4 mr-2" />
+                      Save Changes
+                    </>
+                  )}
                 </Button>
               </CardFooter>
             </Card>

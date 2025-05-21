@@ -1,20 +1,22 @@
-'use client'; // Needed for useState, framer-motion, and client-side logic
+'use client';
 
-import React, { useState } from 'react';
+import React, { useState, Suspense } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation'; // Changed from next/router
+import { useRouter, useSearchParams } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { AlertCircle } from 'lucide-react';
-import { Separator } from "@radix-ui/react-separator";
-import { GoogleSignInButton } from "@/components/google-signin-button";
+import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
+import { toast } from "sonner";
 
-export default function Register() {
+// Create a wrapper component that will use the useSearchParams hook
+function RegisterForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirect = searchParams.get('redirect') || '/dashboard';
+  
   const [formData, setFormData] = useState({
     fullName: '',
     email: '',
@@ -23,8 +25,8 @@ export default function Register() {
     accountType: 'student',
     agreeTerms: false
   });
-  const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const supabase = createClientComponentClient();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -41,35 +43,76 @@ export default function Register() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    if (!formData.fullName || !formData.email || !formData.password) {
-      setError('Please fill in all required fields');
-      return;
-    }
-
+    
+    // Validation
     if (formData.password !== formData.confirmPassword) {
-      setError('Passwords do not match');
+      toast.error("Passwords don't match");
       return;
     }
-
-    if (formData.password.length < 8) { // Added password length check
-      setError('Password must be at least 8 characters long');
+    
+    if (formData.password.length < 8) {
+      toast.error("Password must be at least 8 characters long");
       return;
     }
-
+    
     if (!formData.agreeTerms) {
-      setError('You must agree to the terms and conditions');
+      toast.error("You must agree to the terms of service and privacy policy");
       return;
     }
-
+    
     setIsLoading(true);
-    setError('');
+    
+    try {
+      // Register with Supabase
+      const { data, error } = await supabase.auth.signUp({
+        email: formData.email,
+        password: formData.password,
+        options: {
+          data: {
+            full_name: formData.fullName,
+            account_type: formData.accountType,
+          },
+          emailRedirectTo: `${window.location.origin}/auth/callback?redirect=${redirect}`
+        }
+      });
 
-    // Simulate API call - in a real application you would implement actual registration here
-    setTimeout(() => {
-      // Simply redirect to dashboard - no actual authentication in this simplified version
-      router.push('/dashboard');
-    }, 500);
+      if (error) {
+        toast.error(error.message);
+        return;
+      }
+
+      if (data.user) {
+        if (data.user.identities && data.user.identities.length === 0) {
+          toast.error("An account with this email already exists");
+          return;
+        }
+        
+        toast.success("Registration successful! Please check your email to verify your account.");
+        
+        // After successful registration, either redirect or stay on the page depending on if email confirmation is required
+        if (data.session) {
+          router.push(redirect);
+          router.refresh();
+        }
+      }
+    } catch (error) {
+      console.error("Registration error:", error);
+      toast.error("An error occurred during registration");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Demo user info helper
+  const fillDemoInfo = () => {
+    setFormData({
+      fullName: 'New Demo User',
+      email: 'new-demo@example.com',
+      password: 'password123',
+      confirmPassword: 'password123',
+      accountType: 'student',
+      agreeTerms: true
+    });
   };
 
   return (
@@ -86,13 +129,6 @@ export default function Register() {
         </p>
       </div>
 
-      {error && (
-        <Alert variant="destructive" className="mt-5">
-          <AlertCircle className="h-4 w-4" />
-          <AlertDescription>{error}</AlertDescription>
-        </Alert>
-      )}
-
       <form onSubmit={handleSubmit} className="space-y-4 mt-5">
         <div className="space-y-2">
           <Label htmlFor="fullName">Full Name</Label>
@@ -102,7 +138,6 @@ export default function Register() {
             placeholder="Enter your full name"
             value={formData.fullName}
             onChange={handleChange}
-            required
           />
         </div>
 
@@ -115,7 +150,6 @@ export default function Register() {
             placeholder="Enter your email"
             value={formData.email}
             onChange={handleChange}
-            required
           />
         </div>
 
@@ -128,7 +162,6 @@ export default function Register() {
             placeholder="Create a password"
             value={formData.password}
             onChange={handleChange}
-            required
           />
           <p className="text-xs text-muted-foreground">
             Password must be at least 8 characters long
@@ -144,7 +177,6 @@ export default function Register() {
             placeholder="Confirm your password"
             value={formData.confirmPassword}
             onChange={handleChange}
-            required
           />
         </div>
 
@@ -162,28 +194,27 @@ export default function Register() {
           </div>
         </div>
 
-        <div className="flex items-start space-x-2"> {/* Changed items-center to items-start for better alignment */}
+        <div className="flex items-start space-x-2">
           <Checkbox
             id="terms"
             checked={formData.agreeTerms}
             onCheckedChange={handleCheckboxChange}
-            required
-            className="mt-1" // Added margin top for alignment
+            className="mt-1"
           />
           <Label
             htmlFor="terms"
-            className="text-sm font-normal leading-snug peer-disabled:cursor-not-allowed peer-disabled:opacity-70" // Adjusted leading
+            className="text-sm font-normal leading-snug peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
           >
             I agree to the{" "}
             <Link
-              href="#" // Link to actual terms page
+              href="#"
               className="font-semibold text-yellow-500 hover:text-yellow-600 transition-colors"
             >
               terms of service
             </Link>
             {" "}and{" "}
             <Link
-              href="#" // Link to actual privacy policy page
+              href="#"
               className="font-semibold text-yellow-500 hover:text-yellow-600 transition-colors"
             >
               privacy policy
@@ -200,19 +231,13 @@ export default function Register() {
         </Button>
       </form>
 
-      {/* Google Auth */}
-      <div className="relative">
-        <div className="absolute inset-0 flex items-center">
-          <Separator className="w-full" />
-        </div>
-        <div className="relative flex justify-center items-center text-xs uppercase py-6">
-          <hr className='flex-1'></hr>
-          <span className="bg-background px-2 text-muted-foreground">OR</span>
-          <hr className='flex-1'></hr>
-        </div>
-      </div>
-
-      <GoogleSignInButton />
+      <Button
+        onClick={fillDemoInfo}
+        variant="ghost"
+        className="w-full mt-4 text-sm text-muted-foreground hover:text-primary"
+      >
+        Fill with demo information
+      </Button>
 
       <div className="mt-6 text-center text-sm">
         <span className="text-muted-foreground">Already have an account?</span>{" "}
@@ -223,6 +248,41 @@ export default function Register() {
           Sign in
         </Link>
       </div>
+
+      <div className="mt-6 p-3 border rounded-md text-sm text-muted-foreground bg-muted/50">
+        <p className="font-medium mb-1">Note</p>
+        <p>This is a simplified registration page. All registration attempts redirect to the dashboard.</p>
+      </div>
     </motion.div>
+  );
+}
+
+// A fallback component to show while the content is loading
+function RegisterFormFallback() {
+  return (
+    <div className="space-y-6 w-full">
+      <div className="space-y-2 text-center animate-pulse">
+        <div className="h-8 w-48 bg-muted rounded mx-auto"></div>
+        <div className="h-4 w-64 bg-muted rounded mx-auto"></div>
+      </div>
+      
+      <div className="space-y-4">
+        {[1, 2, 3, 4].map((i) => (
+          <div key={i} className="space-y-2">
+            <div className="h-4 w-16 bg-muted rounded"></div>
+            <div className="h-10 bg-muted rounded"></div>
+          </div>
+        ))}
+        <div className="h-10 bg-muted rounded mt-6"></div>
+      </div>
+    </div>
+  );
+}
+
+export default function Register() {
+  return (
+    <Suspense fallback={<RegisterFormFallback />}>
+      <RegisterForm />
+    </Suspense>
   );
 }
