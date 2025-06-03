@@ -3,10 +3,61 @@ import LoginForm from "@/components/LoginForm";
 import Link from 'next/link';
 import {Separator} from '@/components/ui/separator';
 import {GoogleSignInButton} from "@/components/google-signin-button";
+import {Alert, AlertDescription} from '@/components/ui/alert';
+import {AlertCircle} from 'lucide-react';
 
-export default function Login() {
+interface LoginPageProps {
+  searchParams: {
+    error?: string;
+  };
+}
+
+export default function Login({searchParams}: LoginPageProps) {
+  const error = searchParams.error;
+  
+  // Map NextAuth error codes to user-friendly messages
+  const getErrorMessage = (error: string) => {
+    switch (error) {
+      case 'Configuration':
+        return 'There is a problem with the server configuration.';
+      case 'AccessDenied':
+        return 'Access denied. You may have cancelled the login process.';
+      case 'Verification':
+        return 'The verification token is invalid or has expired.';
+      case 'OAuthSignin':
+        return 'Error signing in with OAuth provider.';
+      case 'OAuthCallback':
+        return 'Error in OAuth callback handler.';
+      case 'OAuthCreateAccount':
+        return 'Could not create OAuth account.';
+      case 'EmailCreateAccount':
+        return 'Could not create email account.';
+      case 'Callback':
+        return 'Error in callback handler.';
+      case 'OAuthAccountNotLinked':
+        return 'This account is already linked to another user.';
+      case 'EmailSignin':
+        return 'Error sending email verification.';
+      case 'CredentialsSignin':
+        return 'Invalid credentials provided.';
+      case 'SessionRequired':
+        return 'Please sign in to access this page.';
+      default:
+        return 'An authentication error occurred. Please try again.';
+    }
+  };
+
   return (
     <>
+      {error && (
+        <Alert variant="destructive" className="mb-6">
+          <AlertCircle className="h-4 w-4"/>
+          <AlertDescription>
+            {getErrorMessage(error)}
+          </AlertDescription>
+        </Alert>
+      )}
+      
       <LoginForm/>
 
       <div className="relative">

@@ -13,11 +13,22 @@ interface GoogleSignInButtonProps {
 export function GoogleSignInButton({className}: GoogleSignInButtonProps) {
   const [isPending, startTransition] = useTransition();
 
+  const handleGoogleSignIn = () => {
+    startTransition(async () => {
+      try {
+        await googleSignIn();
+      } catch (error) {
+        // Error will be handled by the server action and redirect to login with error
+        console.error('Google sign-in error:', error);
+      }
+    });
+  };
+
   return (
     <Button
       variant="outline"
       className={`w-full flex items-center gap-2 ${className}`}
-      onClick={() => startTransition(() => googleSignIn())}
+      onClick={handleGoogleSignIn}
       disabled={isPending}
     >
       {isPending ? (
