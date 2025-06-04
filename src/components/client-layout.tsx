@@ -3,6 +3,7 @@
 import React, {useState, useEffect} from "react";
 import {usePathname} from "next/navigation";
 import {useMediaQuery} from "@/hooks/use-media-query";
+import {useUser} from "@/contexts/user-context";
 import Header from "@/components/header";
 import Sidebar from "@/components/sidebar";
 import {motion} from "framer-motion";

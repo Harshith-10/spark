@@ -4,6 +4,8 @@ import "./globals.css";
 import {Toaster} from "@/components/ui/sonner";
 import {ThemeProvider} from "@/components/theme-provider";
 import ClientLayout from "@/components/client-layout";
+import {SessionProvider} from "next-auth/react";
+import {UserProvider} from "@/contexts/user-context";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -30,15 +32,19 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <ThemeProvider
-          defaultTheme="system"
-          storageKey="spark-theme"
-        >
-          <ClientLayout>
-            {children}
-          </ClientLayout>
-          <Toaster/>
-        </ThemeProvider>
+        <SessionProvider>
+          <UserProvider>
+            <ThemeProvider
+              defaultTheme="system"
+              storageKey="spark-theme"
+            >
+              <ClientLayout>
+                {children}
+              </ClientLayout>
+              <Toaster/>
+            </ThemeProvider>
+          </UserProvider>
+        </SessionProvider>
       </body>
     </html>
   );

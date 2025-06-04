@@ -15,15 +15,18 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useTheme } from '@/components/theme-provider';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useUser } from '@/contexts/user-context';
+import UserProfile from '@/components/user-profile';
 
 export default function Settings() {
   const { theme, setTheme } = useTheme();
+  const { user } = useUser();
 
-  // User profile state
+  // User profile state - now using actual user data from Google Auth
   const [userProfile, setUserProfile] = useState({
-    name: "Yechika",
-    email: "chika.h@gmail.com",
-    avatar: "/images/avatar3.jpg",
+    name: user?.name || "Yechika",
+    email: user?.email || "",
+    avatar: user?.image || "/images/avatar3.jpg",
   });
 
   // Notification settings state
@@ -45,15 +48,6 @@ export default function Settings() {
     soundEffects: false,
     timerPosition: "top",
   });
-
-  // Handle profile form submit
-  const handleProfileSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    toast("Profile updated", {
-      description: "Your profile information has been updated successfully.",
-    });
-  };
-
   // Save notification settings
   const handleSaveNotifications = () => {
     toast("Notifications updated", {
@@ -95,81 +89,79 @@ export default function Settings() {
           <TabsTrigger value="notifications">Notifications</TabsTrigger>
           <TabsTrigger value="appearance">Appearance</TabsTrigger>
           <TabsTrigger value="tests">Test Preferences</TabsTrigger>
-        </TabsList>
-
-        {/* Profile Settings */}
+        </TabsList>        {/* Profile Settings */}
         <TabsContent value="profile" className="mt-0">
-          <form onSubmit={handleProfileSubmit}>
-            <Card>
-              <CardHeader>
-                <CardTitle>Profile Information</CardTitle>
-                <CardDescription>
-                  Update your account information and how others see you on the platform
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="flex flex-col md:flex-row items-start gap-6">
-                  <div className="flex flex-col items-center space-y-3">
-                    <Avatar className="h-24 w-24">
-                      <AvatarImage src={userProfile.avatar} alt={userProfile.name} />
-                      <AvatarFallback>{userProfile.name.substring(0, 2)}</AvatarFallback>
-                    </Avatar>
-                    <Button size="sm" variant="outline">
-                      Change Avatar
-                    </Button>
-                  </div>
-
-                  <div className="space-y-4 flex-1">
-                    <div className="grid gap-2">
-                      <Label htmlFor="name">Full Name</Label>
-                      <Input
-                        id="name"
-                        value={userProfile.name}
-                        onChange={(e) => setUserProfile({ ...userProfile, name: e.target.value })}
-                      />
-                    </div>
-
-                    <div className="grid gap-2">
-                      <Label htmlFor="email">Email Address</Label>
-                      <Input
-                        id="email"
-                        type="email"
-                        value={userProfile.email}
-                        onChange={(e) => setUserProfile({ ...userProfile, email: e.target.value })}
-                      />
-                    </div>
-                  </div>
+          <Card>
+            <CardHeader>
+              <CardTitle>Profile Information</CardTitle>
+              <CardDescription>
+                Your profile information from Google Account. This information is managed through your Google Account.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="flex flex-col md:flex-row items-start gap-6">
+                <div className="flex flex-col items-center space-y-3">
+                  <Avatar className="h-24 w-24">
+                    <AvatarImage src={userProfile.avatar} alt={userProfile.name} />
+                    <AvatarFallback>
+                      {userProfile.name ? userProfile.name.substring(0, 2).toUpperCase() : "U"}
+                    </AvatarFallback>
+                  </Avatar>
+                  <p className="text-xs text-muted-foreground text-center">
+                    Synced from Google Account
+                  </p>
                 </div>
 
-                <Separator />
-
-                <div className="space-y-4">
-                  <h3 className="text-lg font-medium">Security</h3>
-
+                <div className="space-y-4 flex-1">
                   <div className="grid gap-2">
-                    <Label htmlFor="current-password">Current Password</Label>
-                    <Input id="current-password" type="password" />
+                    <Label htmlFor="name">Full Name</Label>
+                    <Input
+                      id="name"
+                      value={userProfile.name}
+                      disabled
+                      className="bg-muted"
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      To change your name, update it in your Google Account settings.
+                    </p>
                   </div>
 
                   <div className="grid gap-2">
-                    <Label htmlFor="new-password">New Password</Label>
-                    <Input id="new-password" type="password" />
-                  </div>
-
-                  <div className="grid gap-2">
-                    <Label htmlFor="confirm-password">Confirm New Password</Label>
-                    <Input id="confirm-password" type="password" />
+                    <Label htmlFor="email">Email Address</Label>
+                    <Input
+                      id="email"
+                      type="email"
+                      value={userProfile.email}
+                      disabled
+                      className="bg-muted"
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Email is managed through your Google Account.
+                    </p>
                   </div>
                 </div>
-              </CardContent>
-              <CardFooter className="flex justify-end">
-                <Button type="submit" className="bg-yellow-500 hover:bg-yellow-600">
-                  <Save className="h-4 w-4 mr-2" />
-                  Save Changes
+              </div>
+
+              <Separator />
+
+              <div className="space-y-4">
+                <h3 className="text-lg font-medium">Account Information</h3>
+                <p className="text-sm text-muted-foreground">
+                  Your account is authenticated through Google. To manage your account settings, 
+                  visit your Google Account settings.
+                </p>
+                <Button variant="outline" asChild>
+                  <a 
+                    href="https://myaccount.google.com/" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                  >
+                    Manage Google Account
+                  </a>
                 </Button>
-              </CardFooter>
-            </Card>
-          </form>
+              </div>
+            </CardContent>
+          </Card>
         </TabsContent>
 
         {/* Notification Settings */}

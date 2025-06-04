@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { SidebarCloseIcon, SidebarOpenIcon, BellIcon, Sparkles } from 'lucide-react';
+import { SidebarCloseIcon, SidebarOpenIcon, BellIcon, Sparkles, LogOut, User, Settings, LayoutDashboard } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ModeToggle } from '@/components/mode-toggle';
+import { useUser } from '@/contexts/user-context';
+import { signOut } from 'next-auth/react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -21,6 +23,7 @@ interface HeaderProps {
 
 const Header = ({ toggleSidebar, isSidebarOpen }: HeaderProps) => {
   const [scrolled, setScrolled] = useState(false);
+  const { user, isLoading } = useUser();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -30,6 +33,19 @@ const Header = ({ toggleSidebar, isSidebarOpen }: HeaderProps) => {
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  const handleSignOut = async () => {
+    await signOut({ callbackUrl: '/login' });
+  };
+
+  const getInitials = (name: string) => {
+    return name
+      .split(' ')
+      .map(n => n[0])
+      .join('')
+      .toUpperCase()
+      .slice(0, 2);
+  };
 
   return (
     <motion.header
@@ -84,28 +100,48 @@ const Header = ({ toggleSidebar, isSidebarOpen }: HeaderProps) => {
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
-          
-          <DropdownMenu>
+            <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="relative h-8 w-8 rounded-full">
                 <Avatar className="h-8 w-8">
-                  <AvatarImage src="/images/avatar3.jpg" alt="User" />
-                  <AvatarFallback>HD</AvatarFallback>
+                  <AvatarImage 
+                    src={user?.image || "/images/avatar3.jpg"} 
+                    alt={user?.name || "User"} 
+                  />
+                  <AvatarFallback>
+                    {user?.name ? getInitials(user.name) : "U"}
+                  </AvatarFallback>
                 </Avatar>
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuLabel>My Account</DropdownMenuLabel>
+            <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuLabel className="font-normal">
+                <div className="flex flex-col space-y-1">
+                  <p className="text-sm font-medium leading-none">
+                    {user?.name || "User"}
+                  </p>
+                  <p className="text-xs leading-none text-muted-foreground">
+                    {user?.email || ""}
+                  </p>
+                </div>
+              </DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuItem asChild>
-                <Link href="/settings">Settings</Link>
+                <Link href="/settings" className="flex items-center">
+                  <Settings className="mr-2 h-4 w-4" />
+                  Settings
+                </Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
-                <Link href="/dashboard">Dashboard</Link>
+                <Link href="/dashboard" className="flex items-center">
+                  <LayoutDashboard className="mr-2 h-4 w-4" />
+                  Dashboard
+                </Link>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem asChild>
-                <Link href="/">Sign out</Link>
+              <DropdownMenuItem onClick={handleSignOut} className="flex items-center">
+                <LogOut className="mr-2 h-4 w-4" />
+                Sign out
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

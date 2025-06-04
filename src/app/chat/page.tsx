@@ -9,7 +9,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { cn } from '@/lib/utils';
-import Markdown from 'react-markdown';
+import EnhancedMarkdown from '@/components/enhanced-markdown';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
@@ -271,11 +271,10 @@ export default function Chat() {
                               "rounded-lg px-4 py-3",
                               message.sender === 'user'
                                 ? "bg-yellow-500 text-white"
-                                : "bg-muted"
-                            )}>
-                              <Markdown>
+                                : "bg-muted"                            )}>
+                              <EnhancedMarkdown>
                                 {message.text}
-                              </Markdown>
+                              </EnhancedMarkdown>
                             </div>
                           }
                           <div className={cn(

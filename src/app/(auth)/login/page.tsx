@@ -7,13 +7,16 @@ import {Alert, AlertDescription} from '@/components/ui/alert';
 import {AlertCircle} from 'lucide-react';
 
 interface LoginPageProps {
-  searchParams: {
+  searchParams: Promise<{
     error?: string;
-  };
+    desc?: string;
+  }>;
 }
 
-export default function Login({searchParams}: LoginPageProps) {
-  const error = searchParams.error;
+export default async function Login({searchParams}: LoginPageProps) {
+  const resolvedSearchParams = await searchParams;
+  const error = resolvedSearchParams.error;
+  const errorDescription = resolvedSearchParams.desc;
   
   // Map NextAuth error codes to user-friendly messages
   const getErrorMessage = (error: string) => {
@@ -53,7 +56,8 @@ export default function Login({searchParams}: LoginPageProps) {
         <Alert variant="destructive" className="mb-6">
           <AlertCircle className="h-4 w-4"/>
           <AlertDescription>
-            {getErrorMessage(error)}
+            <p className="font-semibold">Authentication Error</p>
+            <p>{`${getErrorMessage(error)} ${errorDescription}`}</p>
           </AlertDescription>
         </Alert>
       )}
@@ -83,10 +87,10 @@ export default function Login({searchParams}: LoginPageProps) {
         </Link>
       </div>
 
-      <div className="mt-6 p-3 border rounded-md text-sm text-muted-foreground bg-muted/50">
+      {/* <div className="mt-6 p-3 border rounded-md text-sm text-muted-foreground bg-muted/50">
         <p className="font-medium mb-1">Note</p>
         <p>All login attempts will redirect to the dashboard in this simplified version.</p>
-      </div>
+      </div> */}
     </>
   );
 }

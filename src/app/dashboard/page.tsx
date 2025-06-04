@@ -11,6 +11,17 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from '@/lib/utils';
 import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartLegend, ChartLegendContent } from '@/components/ui/chart';
 import { useMediaQuery } from '@/hooks/use-media-query';
+import { useUser } from '@/contexts/user-context';
+import UserProfile from '@/components/user-profile';
+
+// Types
+interface LeaderboardUser {
+  id: number;
+  name: string;
+  score: number;
+  avatar: string;
+  isCurrentUser?: boolean;
+}
 
 // Mock data for the score chart
 const scoreData = [
@@ -30,12 +41,10 @@ const upcomingTests = [
 ];
 
 // Mock data for leaderboard
-const leaderboardData = [
-  { id: 1, name: 'Yechii', score: 98, avatar: '/images/avatar3.jpg' },
-  { id: 2, name: 'Harshith Doddipalli', score: 94, avatar: '/images/avatar.jpg' },
-  { id: 3, name: 'Gautham Sharma', score: 91, avatar: '/images/avatar2.png' },
-  { id: 4, name: 'You', score: 90, avatar: '/images/avatar.jpg', isCurrentUser: true },
-  { id: 5, name: 'Michael Johnson', score: 85, avatar: 'https://i.pravatar.cc/150?img=59' },
+const leaderboardData : LeaderboardUser[] = [
+  { id: 1, name: 'Yechii', score: 98, avatar: '/images/yechika.jpg' },
+  { id: 3, name: 'Yakshika', score: 95, avatar: '/images/yakshika.png' },
+  { id: 2, name: 'Harshith', score: 91, avatar: '/images/harshith.jpg' },
 ];
 
 // Mock data for recent activity
@@ -84,6 +93,24 @@ const chartConfig = {
 export default function Dashboard() {
   const [timeRange, setTimeRange] = useState<string>('6m');
   const isDarkMode = useMediaQuery('(prefers-color-scheme: dark)');
+  const { user } = useUser();
+  // Generate leaderboard data with actual user information
+  const getLeaderboardData = (): LeaderboardUser[] => {
+    const baseData = leaderboardData;
+
+    // Add current user to leaderboard
+    if (user) {
+      baseData.push({
+        id: 4,
+        name: user.name || 'You',
+        score: 90,
+        avatar: user.image || '/images/avatar.jpg',
+        isCurrentUser: true
+      });
+    }
+
+    return baseData;
+  };
 
   useEffect(() => {
     // Reset animations when timeRange changes
@@ -101,11 +128,15 @@ export default function Dashboard() {
       animate={{ opacity: 1 }}
       transition={{ duration: 0.3 }}
       className="space-y-8"
-    >
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center">
+    >      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-          <p className="text-muted-foreground">Welcome back! Here&apos;s an overview of your progress.</p>
+          <h1 className="text-3xl font-bold tracking-tight">
+            Welcome back, {user?.name?.split(' ')[0] || 'Student'}!
+          </h1>
+          <p className="text-muted-foreground">Here&apos;s an overview of your progress.</p>
+        </div>
+        <div className="flex items-center space-x-4">
+          <UserProfile variant="compact" showEmail={false} />
         </div>
       </div>
 
@@ -290,59 +321,50 @@ export default function Dashboard() {
               </ChartContainer>
             </div>
           </CardContent>
-        </Card>
-
-        <Card className="col-span-3">
+        </Card>        <Card className="col-span-3">
           <CardHeader>
             <CardTitle>Leaderboard</CardTitle>
             <CardDescription>Top performers this month</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-8">
-              {leaderboardData.slice(0, 3).map((user, index) => (
-                <div key={user.id} className="flex items-center">
-                  <div className="flex items-center justify-center h-9 w-9 rounded-full bg-yellow-500 text-white font-bold shrink-0">
+            <div className="space-y-4">
+              {getLeaderboardData().slice(0, 3).map((userData, index) => (
+                <div key={userData.id} className={`flex items-center p-2 rounded-lg ${userData.isCurrentUser ? 'bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800' : ''}`}>
+                  <div className={`flex items-center justify-center h-8 w-8 rounded-full font-bold shrink-0 text-sm ${
+                    index < 3 ? 'bg-yellow-500 text-white' : 'bg-muted text-muted-foreground'
+                  }`}>
                     {index + 1}
                   </div>
-                  <Avatar className="h-9 w-9 ml-3">
-                    <AvatarImage src={user.avatar} alt={user.name} />
-                    <AvatarFallback>{user.name.substring(0, 2)}</AvatarFallback>
+                  <Avatar className="h-8 w-8 ml-3">
+                    <AvatarImage src={userData.avatar} alt={userData.name} />
+                    <AvatarFallback className="text-xs">
+                      {userData.name ? userData.name.substring(0, 2).toUpperCase() : "U"}
+                    </AvatarFallback>
                   </Avatar>
-                  <div className="ml-4 space-y-1">
-                    <p className="text-sm font-medium leading-none">{user.name}</p>
-                    <p className="text-sm text-muted-foreground">
-                      Score: {user.score}%
+                  <div className="ml-3 space-y-1 flex-1">
+                    <div className="flex items-center gap-2">
+                      <p className="text-sm font-medium leading-none">{userData.name}</p>
+                      {userData.isCurrentUser && (
+                        <Badge variant="secondary" className="text-xs">You</Badge>
+                      )}
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Score: {userData.score}%
                     </p>
                   </div>
-                  {index === 0 && (
-                    <div className="ml-auto flex h-8 w-8 items-center justify-center rounded-full bg-yellow-500/20">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-yellow-500"><circle cx="12" cy="8" r="6"></circle><path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"></path></svg>
+                  <div className="ml-auto font-bold text-sm">
+                    {userData.score}%
+                  </div>
+                  {index < 3 && (
+                    <div className="ml-2 flex h-6 w-6 items-center justify-center rounded-full bg-yellow-500/20">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-yellow-500">
+                        <circle cx="12" cy="8" r="6"></circle>
+                        <path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"></path>
+                      </svg>
                     </div>
                   )}
                 </div>
               ))}
-            </div>
-
-            <div className="mt-4 pt-4 border-t">
-              <h4 className="text-sm font-medium mb-3">Your Ranking</h4>
-              <div className="flex items-center">
-                <div className="flex items-center justify-center h-9 w-9 rounded-full bg-yellow-500 text-foreground font-bold shrink-0">
-                  1
-                </div>
-                <Avatar className="h-9 w-9 ml-3 ring-2 ring-yellow-500">
-                  <AvatarImage src="/images/avatar3.jpg" alt="You" />
-                  <AvatarFallback>HD</AvatarFallback>
-                </Avatar>
-                <div className="ml-4 space-y-1">
-                  <p className="text-sm font-medium leading-none">You</p>
-                  <p className="text-sm text-muted-foreground">
-                    Score: 98%
-                  </p>
-                </div>
-                <div className="ml-auto flex h-8 w-8 items-center justify-center rounded-full bg-yellow-500/20">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-yellow-500"><circle cx="12" cy="8" r="6"></circle><path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"></path></svg>
-                </div>
-              </div>
             </div>
           </CardContent>
         </Card>
