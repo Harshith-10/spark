@@ -16,14 +16,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useTheme } from '@/components/theme-provider';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useUser } from '@/contexts/user-context';
-import UserProfile from '@/components/user-profile';
 
 export default function Settings() {
   const { theme, setTheme } = useTheme();
   const { user } = useUser();
 
   // User profile state - now using actual user data from Google Auth
-  const [userProfile, setUserProfile] = useState({
+  const [userProfile] = useState({
     name: user?.name || "Yechika",
     email: user?.email || "",
     avatar: user?.image || "/images/avatar3.jpg",

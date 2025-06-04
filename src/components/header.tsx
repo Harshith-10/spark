@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { SidebarCloseIcon, SidebarOpenIcon, BellIcon, Sparkles, LogOut, User, Settings, LayoutDashboard } from 'lucide-react';
+import { SidebarCloseIcon, SidebarOpenIcon, BellIcon, Sparkles, LogOut, Settings, LayoutDashboard } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ModeToggle } from '@/components/mode-toggle';
@@ -23,7 +23,7 @@ interface HeaderProps {
 
 const Header = ({ toggleSidebar, isSidebarOpen }: HeaderProps) => {
   const [scrolled, setScrolled] = useState(false);
-  const { user, isLoading } = useUser();
+  const { user } = useUser();
 
   useEffect(() => {
     const handleScroll = () => {

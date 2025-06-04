@@ -20,22 +20,21 @@ interface EnhancedMarkdownProps {
 }
 
 interface CodeBlockProps {
-  node?: any;
   inline?: boolean;
   className?: string;
   children?: React.ReactNode;
-  [key: string]: any;
 }
 
-const CodeBlock: React.FC<CodeBlockProps> = ({ 
-  node, 
+const CodeBlock: React.FC<CodeBlockProps> = ({
   inline, 
   className, 
-  children, 
-  ...props 
+  children 
 }) => {
-  const { theme } = useTheme();
+  const { theme, resolvedTheme } = useTheme();
   const [copied, setCopied] = useState(false);
+  
+  // Use resolvedTheme for more reliable theme detection
+  const isDark = theme === 'dark' || resolvedTheme === 'dark';
   
   const match = /language-(\w+)/.exec(className || '');
   const language = match ? match[1] : '';
@@ -70,27 +69,23 @@ const CodeBlock: React.FC<CodeBlockProps> = ({
               <Copy className="h-3 w-3" />
             )}
           </Button>
-        </div>
-        <SyntaxHighlighter
-          style={theme === 'dark' ? oneDark : oneLight}
+        </div>        <SyntaxHighlighter
+          style={isDark ? oneDark : oneLight}
           language={language}
           PreTag="div"
           className="!mt-0 !rounded-t-none"
-          {...props}
         >
           {codeString}
         </SyntaxHighlighter>
       </div>
     );
   }
-
   return (
     <code
       className={cn(
         "relative rounded bg-muted px-[0.3rem] py-[0.2rem] font-mono text-sm font-semibold",
         className
       )}
-      {...props}
     >
       {children}
     </code>

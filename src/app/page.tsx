@@ -100,7 +100,7 @@ export default function LandingPage() { // Renamed from Home to LandingPage for 
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6 }}
             >
-              Elevate Your Testing Experience with{' '}
+              Elevate Your Learning Experience with{' '}
               <span className="text-yellow-500">Spark</span>
             </motion.h1>
             <motion.p
